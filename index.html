@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- 폰트 1순위: Google Fonts CDN (빠른 로딩) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@200;300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:ital,wght@0,200;0,300;0,400;1,200&display=swap">
+<!-- 폰트 2순위: jsDelivr CDN 미러 (Google 느릴 때 자동 대체) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/NotoSerifKR/NotoSerifKR.css" media="print" onload="this.media='all'">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>온마을 · ONMAEUL — 마을 전체가 당신의 호텔</title>
+<style>
+
+  /* ── 온마을 고유 폰트 — 3단계 보호 ── */
+  /* 1단계: Google Fonts woff2 직접 내장 경로 */
+  @font-face {
+    font-family: 'Noto Serif KR';
+    font-style: normal;
+    font-weight: 200;
+    font-display: swap;
+    src: url('https://fonts.gstatic.com/s/notoserifkr/v37/3JnlSDn90Gmq2mr3blnHaTZXTihI8Rb2.woff2') format('woff2'),
+         local('Noto Serif KR'), local('NotoSerifKR'),
+         local('본명조'), local('Nanum Myeongjo'), local('나눔명조'),
+         local('AppleMyungjo'), local('Batang');
+    unicode-range: U+AC00-D7A3, U+0030-0039, U+0041-007A;
+  }
+  @font-face {
+    font-family: 'Noto Serif KR';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('https://fonts.gstatic.com/s/notoserifkr/v37/3JnlSDn90Gmq2mr3blnHaTZXTihR8Rb2.woff2') format('woff2'),
+         local('Noto Serif KR'), local('NotoSerifKR'),
+         local('본명조'), local('Nanum Myeongjo'), local('나눔명조');
+  }
+  @font-face {
+    font-family: 'Noto Serif KR';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('https://fonts.gstatic.com/s/notoserifkr/v37/3JnlSDn90Gmq2mr3blnHaTZXTihl8Rb2.woff2') format('woff2'),
+         local('Noto Serif KR'), local('NotoSerifKR'),
+         local('본명조'), local('Nanum Myeongjo');
+  }
+  @font-face {
+    font-family: 'Cormorant Garamond';
+    font-style: italic;
+    font-weight: 300;
+    font-display: swap;
+    src: url('https://fonts.gstatic.com/s/cormorantgaramond/v21/co3JmX5slCNuHLi8bLeY9MK7whWMhyjYrEPjuw-1.woff2') format('woff2'),
+         local('Cormorant Garamond'), local('CormorantGaramond'),
+         local('Garamond'), local('Georgia');
+  }
+  @font-face {
+    font-family: 'Cormorant Garamond';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('https://fonts.gstatic.com/s/cormorantgaramond/v21/co3ImX5slCNuHLi8bLeY9MK7whWMhyjQEl5f.woff2') format('woff2'),
+         local('Cormorant Garamond'), local('CormorantGaramond'),
+         local('Garamond'), local('Georgia');
+  }
+  @font-face {
+    font-family: 'DM Sans';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('https://fonts.gstatic.com/s/dmsans/v14/rP2tp2ywxg089UriI5-g4vlH9VoD8Cmcqbu6-K6z.woff2') format('woff2'),
+         local('DM Sans'), local('DMSans'),
+         local('Helvetica Neue'), local('-apple-system');
+  }
+  @font-face {
+    font-family: 'DM Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('https://fonts.gstatic.com/s/dmsans/v14/rP2tp2ywxg089UriI5-g4vlH9VoD8Cmcqbu6-K6z.woff2') format('woff2'),
+         local('DM Sans'), local('DMSans'),
+         local('Helvetica Neue'), local('-apple-system');
+  }
+
+:root {
+  --ink:        #0E0D0B;
+  --ash:        #1C1A16;
+  --stone:      #2E2B25;
+  --fog:        #6B6660;
+  --linen:      #F2EDE6;
+  --cream:      #FAF7F2;
+  --gold:       #B8965A;
+  --gold-pale:  #D4B483;
+  --moss:       #4A5240;
+  --mist:       #C8C4BC;
+  --white:      #FEFCF9;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  overflow-x: hidden;
+}
+
+/* ── GRAIN OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.6;
+}
+
+/* ══════════════════════════════
+   HERO
+══════════════════════════════ */
+.hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(74,82,64,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 85% 15%, rgba(184,150,90,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 100% 80% at 50% 50%, #161410 0%, #0A0908 100%);
+}
+
+/* Horizontal rule lines - architectural feel */
+.hero-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hero-lines::before,
+.hero-lines::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(184,150,90,0.2), transparent);
+}
+.hero-lines::before { top: 18%; }
+.hero-lines::after  { bottom: 22%; }
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 120px 40px 60px;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-eyebrow {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 6px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 48px;
+  opacity: 0;
+  animation: fadeUp 1s ease 0.2s forwards;
+}
+
+.hero-wordmark {
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp 1.2s ease 0.5s forwards;
+  position: relative;
+}
+
+/* ── AURA ── */
+.hero-wordmark::before {
+  content: '';
+  position: absolute;
+  left: 50%; top: 45%;
+  transform: translate(-50%, -50%);
+  width: 420px; height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center,
+    rgba(184,150,90,0.18) 0%,
+    rgba(184,150,90,0.07) 40%,
+    transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: aura-pulse 4s ease-in-out infinite;
+}
+.hero-wordmark::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: 45%;
+  transform: translate(-50%, -50%);
+  width: 640px; height: 340px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center,
+    rgba(74,82,64,0.2) 0%,
+    rgba(184,150,90,0.05) 40%,
+    transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: aura-pulse 4s ease-in-out 1.2s infinite;
+}
+@keyframes aura-pulse {
+  0%,100% { opacity:0.6; transform:translate(-50%,-50%) scale(1); }
+  50%      { opacity:1;   transform:translate(-50%,-50%) scale(1.1); }
+}
+
+/* 반짝이는 입자 */
+.aura-spark {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--gold);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  animation: spark-float linear infinite;
+}
+@keyframes spark-float {
+  0%   { opacity:0;   transform:translateY(0) scale(0.5); }
+  20%  { opacity:0.8; transform:translateY(-20px) scale(1); }
+  80%  { opacity:0.4; transform:translateY(-60px) scale(0.8); }
+  100% { opacity:0;   transform:translateY(-90px) scale(0); }
+}
+
+.hero-kr {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(64px, 12vw, 120px);
+  font-weight: 200;
+  color: var(--white);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  display: block;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-en {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(18px, 3vw, 28px);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--gold-pale);
+  letter-spacing: 0.35em;
+  display: block;
+  margin-top: 12px;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-divider {
+  width: 1px;
+  height: 60px;
+  background: linear-gradient(180deg, var(--gold) 0%, transparent 100%);
+  margin: 40px auto;
+  opacity: 0;
+  animation: fadeUp 1s ease 0.9s forwards;
+}
+
+.hero-tagline {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(14px, 2vw, 18px);
+  font-weight: 200;
+  color: rgba(250,247,242,0.55);
+  line-height: 2;
+  letter-spacing: 0.05em;
+  max-width: 480px;
+  opacity: 0;
+  animation: fadeUp 1s ease 1.1s forwards;
+}
+
+.hero-tagline em {
+  font-style: normal;
+  color: var(--gold-pale);
+}
+
+.hero-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 32px 48px 40px;
+  position: relative;
+  z-index: 2;
+  border-top: 1px solid rgba(184,150,90,0.12);
+  opacity: 0;
+  animation: fadeIn 1s ease 1.6s forwards;
+}
+
+.hero-footer-left {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: rgba(250,247,242,0.25);
+  text-transform: uppercase;
+}
+
+.hero-footer-right {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
+  font-style: italic;
+  color: rgba(184,150,90,0.5);
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(20px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity:0; }
+  to   { opacity:1; }
+}
+
+
+/* ══════════════════════════════
+   SECTION COMMONS
+══════════════════════════════ */
+section { padding: 120px 48px; }
+
+.section-label {
+  font-size: 9px;
+  letter-spacing: 5px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 64px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--mist), transparent);
+  max-width: 200px;
+}
+
+.section-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 200;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.section-title em {
+  font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--gold);
+}
+
+
+/* ══════════════════════════════
+   BRAND CONCEPT
+══════════════════════════════ */
+.concept {
+  background: var(--white);
+  max-width: 100%;
+}
+
+.concept-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.concept-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  margin-top: 80px;
+  align-items: start;
+}
+
+.concept-text .big-quote {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(22px, 3.5vw, 36px);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--stone);
+  border-left: 2px solid var(--gold);
+  padding-left: 32px;
+  margin-bottom: 40px;
+}
+
+.concept-text p {
+  font-size: 15px;
+  color: var(--fog);
+  line-height: 2;
+  margin-bottom: 20px;
+}
+
+.concept-meaning {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.meaning-item {
+  padding: 28px 32px;
+  border: 1px solid rgba(184,150,90,0.15);
+  border-radius: 2px;
+  position: relative;
+  transition: border-color 0.3s;
+}
+.meaning-item:hover { border-color: rgba(184,150,90,0.4); }
+
+.meaning-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--gold);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.4s ease;
+}
+.meaning-item:hover::before { transform: scaleY(1); }
+
+.meaning-kr {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.meaning-en {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  display: block;
+}
+.meaning-desc {
+  font-size: 13px;
+  color: var(--fog);
+  line-height: 1.8;
+}
+
+
+/* ══════════════════════════════
+   LOGO SYSTEM
+══════════════════════════════ */
+.logo-section {
+  background: var(--linen);
+}
+
+.logo-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-top: 64px;
+}
+
+.logo-card {
+  padding: 64px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  min-height: 280px;
+  position: relative;
+}
+
+.logo-card.dark  { background: var(--ink); }
+.logo-card.mid   { background: var(--stone); }
+.logo-card.light { background: var(--white); }
+.logo-card.gold-bg { background: var(--gold); }
+.logo-card.linen { background: var(--linen); border: 1px solid var(--mist); }
+
+.logo-display-kr {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 200;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+.logo-display-en {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 0.3em;
+}
+
+.logo-card.dark .logo-display-kr  { color: var(--white); font-size: 52px; }
+.logo-card.dark .logo-display-en  { color: var(--gold-pale); font-size: 16px; }
+.logo-card.mid .logo-display-kr   { color: var(--linen); font-size: 52px; }
+.logo-card.mid .logo-display-en   { color: var(--mist); font-size: 16px; }
+.logo-card.light .logo-display-kr { color: var(--ink); font-size: 52px; }
+.logo-card.light .logo-display-en { color: var(--gold); font-size: 16px; }
+.logo-card.gold-bg .logo-display-kr { color: var(--ink); font-size: 52px; }
+.logo-card.gold-bg .logo-display-en { color: rgba(14,13,11,0.6); font-size: 16px; }
+
+.logo-card-label {
+  position: absolute;
+  bottom: 16px;
+  left: 20px;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0.35;
+}
+.logo-card.dark .logo-card-label,
+.logo-card.mid .logo-card-label { color: var(--white); }
+.logo-card.light .logo-card-label,
+.logo-card.linen .logo-card-label { color: var(--ink); }
+.logo-card.gold-bg .logo-card-label { color: var(--ink); }
+
+/* Horizontal lockup */
+.logo-lockup {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.logo-lockup-divider {
+  width: 1px;
+  height: 40px;
+  background: currentColor;
+  opacity: 0.25;
+}
+.logo-lockup-left {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 200;
+  font-size: 36px;
+  line-height: 1;
+}
+.logo-lockup-right {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.logo-lockup-en {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.25em;
+}
+.logo-lockup-sub {
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0.4;
+}
+
+
+/* ══════════════════════════════
+   COLOR PALETTE
+══════════════════════════════ */
+.palette-section {
+  background: var(--white);
+}
+.palette-inner { max-width: 1200px; margin: 0 auto; }
+
+.palette-swatches {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  margin-top: 64px;
+  border-radius: 4px;
+  overflow: hidden;
+  height: 200px;
+}
+
+.swatch {
+  position: relative;
+  cursor: default;
+  transition: flex 0.4s ease;
+}
+.swatch:hover { flex: 2; }
+
+.swatch-info {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.swatch:hover .swatch-info { opacity: 1; }
+
+.swatch-name {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+.swatch-hex {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.palette-labels {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  margin-top: 16px;
+}
+.palette-label {
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--fog);
+  text-transform: uppercase;
+}
+
+/* ══════════════════════════════
+   TYPOGRAPHY
+══════════════════════════════ */
+.type-section {
+  background: var(--ink);
+  color: var(--white);
+}
+.type-inner { max-width: 1200px; margin: 0 auto; }
+
+.type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  margin-top: 64px;
+}
+
+.type-specimen { border-top: 1px solid rgba(250,247,242,0.08); padding-top: 32px; }
+
+.type-name {
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.specimen-display {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 200;
+  color: var(--white);
+  line-height: 1;
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+}
+
+.specimen-en {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(36px, 6vw, 72px);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--gold-pale);
+  line-height: 1;
+  margin-bottom: 20px;
+}
+
+.specimen-body {
+  font-size: 14px;
+  color: rgba(250,247,242,0.45);
+  line-height: 2;
+}
+
+.type-weights {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.type-weight-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid rgba(250,247,242,0.05);
+  padding-bottom: 12px;
+}
+.tw-label { font-size: 10px; letter-spacing: 2px; color: var(--fog); }
+.tw-sample { font-family: 'Noto Serif KR', serif; color: var(--white); }
+
+
+/* ══════════════════════════════
+   BRAND VOICE
+══════════════════════════════ */
+.voice-section {
+  background: var(--cream);
+}
+.voice-inner { max-width: 1200px; margin: 0 auto; }
+
+.voice-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2px;
+  margin-top: 64px;
+}
+
+.voice-card {
+  background: var(--white);
+  padding: 48px 40px;
+  border-top: 2px solid transparent;
+  transition: border-color 0.3s;
+}
+.voice-card:nth-child(1) { border-color: var(--gold); }
+.voice-card:nth-child(2) { border-color: var(--moss); }
+.voice-card:nth-child(3) { border-color: var(--fog); }
+
+.voice-en {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-style: italic;
+  color: var(--ink);
+  margin-bottom: 8px;
+  line-height: 1;
+}
+.voice-kr {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 24px;
+  display: block;
+}
+.voice-desc {
+  font-size: 13px;
+  color: var(--fog);
+  line-height: 1.9;
+}
+
+.voice-do-dont {
+  margin-top: 64px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+
+.do-card, .dont-card {
+  padding: 48px 40px;
+}
+.do-card { background: var(--ink); }
+.dont-card { background: var(--linen); }
+
+.do-label {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 32px;
+  display: block;
+}
+.dont-label {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--fog);
+  margin-bottom: 32px;
+  display: block;
+}
+
+.voice-list { list-style: none; display: flex; flex-direction: column; gap: 16px; }
+.voice-list li {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.do-card .voice-list li { color: rgba(250,247,242,0.7); }
+.dont-card .voice-list li { color: var(--fog); }
+
+.voice-list li::before { flex-shrink: 0; margin-top: 3px; font-size: 11px; }
+.do-card .voice-list li::before { content: '→'; color: var(--gold); }
+.dont-card .voice-list li::before { content: '×'; color: var(--mist); }
+
+
+/* ══════════════════════════════
+   BM ARCHITECTURE
+══════════════════════════════ */
+.bm-section {
+  background: var(--linen);
+}
+.bm-inner { max-width: 1200px; margin: 0 auto; }
+
+.bm-hub {
+  margin-top: 80px;
+  position: relative;
+}
+
+.bm-center {
+  text-align: center;
+  padding: 64px 40px;
+  background: var(--ink);
+  border-radius: 4px;
+  margin-bottom: 2px;
+  position: relative;
+}
+
+.bm-center-kr {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 48px;
+  font-weight: 200;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+.bm-center-en {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--gold-pale);
+  letter-spacing: 0.3em;
+  display: block;
+  margin-bottom: 20px;
+}
+.bm-center-desc {
+  font-size: 13px;
+  color: rgba(250,247,242,0.4);
+  letter-spacing: 2px;
+}
+
+.bm-branches {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+}
+
+.bm-branch {
+  background: var(--white);
+  padding: 36px 32px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+  cursor: default;
+}
+.bm-branch:hover {
+  background: var(--ink);
+  border-bottom-color: var(--gold);
+}
+
+.bm-branch-icon {
+  font-size: 24px;
+  margin-bottom: 16px;
+  display: block;
+}
+.bm-branch-name {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--ink);
+  margin-bottom: 6px;
+  transition: color 0.3s;
+}
+.bm-branch:hover .bm-branch-name { color: var(--white); }
+.bm-branch-en {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 12px;
+}
+.bm-branch-desc {
+  font-size: 12px;
+  color: var(--fog);
+  line-height: 1.7;
+  transition: color 0.3s;
+}
+.bm-branch:hover .bm-branch-desc { color: rgba(250,247,242,0.5); }
+
+.bm-sub-branches {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.bm-sub {
+  background: var(--stone);
+  padding: 28px 28px;
+  transition: background 0.3s;
+}
+.bm-sub:hover { background: var(--ash); }
+
+.bm-sub-name {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--linen);
+  margin-bottom: 8px;
+}
+.bm-sub-detail {
+  font-size: 11px;
+  color: var(--fog);
+  line-height: 1.7;
+}
+
+
+/* ══════════════════════════════
+   SNS TEMPLATES
+══════════════════════════════ */
+.sns-section {
+  background: var(--white);
+}
+.sns-inner { max-width: 1200px; margin: 0 auto; }
+
+.sns-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-top: 64px;
+}
+
+.sns-card {
+  aspect-ratio: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+}
+.sns-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(14,13,11,0);
+  transition: background 0.4s;
+}
+.sns-card:hover::after { background: rgba(14,13,11,0.3); }
+
+.sns-bg-1 { background: linear-gradient(145deg, #1a1612 0%, #2d2620 50%, #1a130c 100%); }
+.sns-bg-2 { background: linear-gradient(160deg, #0d1408 0%, #1a2214 100%); }
+.sns-bg-3 { background: linear-gradient(135deg, #12100e 0%, #211d18 100%); }
+
+.sns-content {
+  position: absolute;
+  inset: 0;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 1;
+}
+
+.sns-tag {
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.sns-main { flex: 1; display: flex; align-items: center; }
+
+.sns-headline {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 200;
+  color: var(--white);
+  line-height: 1.4;
+}
+.sns-headline-en {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  color: var(--gold-pale);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.sns-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.sns-handle {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: rgba(184,150,90,0.6);
+}
+.sns-hashtag {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: rgba(250,247,242,0.25);
+  text-align: right;
+  line-height: 1.8;
+}
+
+
+/* ══════════════════════════════
+   SLOGAN
+══════════════════════════════ */
+.slogan-section {
+  background: var(--ink);
+  text-align: center;
+  padding: 160px 48px;
+}
+
+.slogan-kr {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(28px, 5vw, 56px);
+  font-weight: 200;
+  color: var(--white);
+  line-height: 1.6;
+  letter-spacing: 0.05em;
+  margin-bottom: 32px;
+}
+
+.slogan-kr span {
+  color: var(--gold-pale);
+}
+
+.slogan-en {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(16px, 2.5vw, 24px);
+  font-style: italic;
+  font-weight: 300;
+  color: rgba(184,150,90,0.5);
+  letter-spacing: 0.1em;
+}
+
+.slogan-divider {
+  width: 40px;
+  height: 1px;
+  background: var(--gold);
+  margin: 48px auto;
+  opacity: 0.4;
+}
+
+.slogan-sub {
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: rgba(250,247,242,0.2);
+  text-transform: uppercase;
+}
+
+
+/* ══════════════════════════════
+   FOOTER
+══════════════════════════════ */
+footer {
+  background: var(--ash);
+  padding: 60px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(184,150,90,0.1);
+}
+
+.footer-brand {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 28px;
+  font-weight: 200;
+  color: var(--white);
+}
+.footer-brand span {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--gold);
+  letter-spacing: 0.3em;
+  display: block;
+  margin-top: 4px;
+}
+
+.footer-info {
+  text-align: right;
+  font-size: 11px;
+  color: var(--fog);
+  line-height: 2;
+  letter-spacing: 1px;
+}
+
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+@media (max-width: 900px) {
+  section { padding: 80px 24px; }
+  .concept-grid { grid-template-columns: 1fr; gap: 48px; }
+  .logo-grid { grid-template-columns: 1fr 1fr; }
+  .palette-swatches { grid-template-columns: repeat(4, 1fr); height: 160px; }
+  .palette-labels { grid-template-columns: repeat(4, 1fr); }
+  .type-grid { grid-template-columns: 1fr; }
+  .voice-grid { grid-template-columns: 1fr; }
+  .voice-do-dont { grid-template-columns: 1fr; }
+  .bm-branches { grid-template-columns: 1fr 1fr; }
+  .bm-sub-branches { grid-template-columns: 1fr; }
+  .sns-grid { grid-template-columns: 1fr; }
+  .hero-footer { padding: 24px; }
+  footer { flex-direction: column; gap: 24px; text-align: center; }
+  .footer-info { text-align: center; }
+}
+
+/* ══════════════════════════════
+   TOP NAV
+══════════════════════════════ */
+.topnav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 48px;
+  background: linear-gradient(180deg, rgba(14,13,11,0.9) 0%, transparent 100%);
+  transition: background 0.4s;
+}
+.topnav.scrolled { background: rgba(14,13,11,0.97); }
+.topnav-brand { font-family:'Noto Serif KR',serif; font-size:20px; font-weight:200; color:var(--white); text-decoration:none; line-height:1; }
+.topnav-brand span { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:10px; color:var(--gold); letter-spacing:.35em; display:block; margin-top:3px; }
+.topnav-links { display:flex; align-items:center; gap:36px; }
+.topnav-link { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:rgba(250,247,242,.4); text-decoration:none; transition:color .3s; }
+.topnav-link:hover { color:var(--gold); }
+.topnav-reserve { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); text-decoration:none; border:1px solid rgba(184,150,90,.4); padding:10px 24px; transition:all .3s; }
+.topnav-reserve:hover { background:var(--gold); color:var(--ink); }
+
+/* HERO CTA */
+.hero-cta-wrap { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top:52px; opacity:0; animation:fadeUp 1s ease 1.6s forwards; }
+.btn-primary { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--ink); background:var(--gold); text-decoration:none; padding:16px 36px; transition:all .3s; font-weight:400; }
+.btn-primary:hover { background:var(--gold-pale); transform:translateY(-2px); }
+.btn-ghost { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:rgba(250,247,242,.5); text-decoration:none; padding:16px 36px; border:1px solid rgba(250,247,242,.18); transition:all .3s; }
+.btn-ghost:hover { border-color:var(--gold); color:var(--gold); }
+
+/* REVEAL */
+.reveal { opacity:0; transform:translateY(32px); transition:opacity .9s ease,transform .9s ease; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+.reveal-d1 { transition-delay:.1s; }
+.reveal-d2 { transition-delay:.2s; }
+.reveal-d3 { transition-delay:.3s; }
+.reveal-d4 { transition-delay:.4s; }
+
+/* SECTION HEADER */
+.sec-eyebrow { font-size:9px; letter-spacing:5px; text-transform:uppercase; color:var(--gold); margin-bottom:20px; display:block; }
+.sec-title { font-family:'Noto Serif KR',serif; font-size:clamp(28px,4vw,48px); font-weight:200; line-height:1.5; margin-bottom:16px; }
+.sec-title em { font-style:italic; font-family:'Cormorant Garamond',serif; color:var(--gold-pale); }
+.sec-sub { font-size:13px; color:var(--fog); line-height:2; max-width:500px; }
+
+/* EXPERIENCES */
+.exp-section { background:var(--cream); padding:130px 48px; }
+.exp-inner { max-width:1200px; margin:0 auto; }
+.exp-header { margin-bottom:72px; }
+.exp-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:3px; }
+.exp-card { background:var(--white); padding:0; text-decoration:none; display:block; border-bottom:2px solid transparent; transition:all .35s; position:relative; overflow:hidden; }
+.exp-card-img { width:100%; height:220px; object-fit:cover; display:block; transition:transform .6s ease; filter:brightness(0.92); }
+.exp-card:hover .exp-card-img { transform:scale(1.04); filter:brightness(0.75); }
+.exp-card-body { padding:36px 40px 40px; }
+.exp-card::before { content:''; position:absolute; inset:0; background:var(--ink); transform:scaleY(0); transform-origin:bottom; transition:transform .4s ease; z-index:0; }
+.exp-card:hover::before { transform:scaleY(1); }
+.exp-card:hover { border-bottom-color:var(--gold); }
+.exp-card-inner { position:relative; z-index:1; }
+.exp-card:hover .exp-name { color:var(--white); }
+.exp-card:hover .exp-desc { color:rgba(250,247,242,.45); }
+.exp-card:hover .exp-en { color:var(--gold); }
+.exp-card:hover .exp-arrow { color:var(--gold); transform:translateX(6px); }
+.exp-card:hover .exp-tag { border-color:rgba(184,150,90,.3); color:var(--gold); }
+.exp-icon { font-size:30px; margin-bottom:22px; display:block; }
+.exp-name { font-family:'Noto Serif KR',serif; font-size:22px; font-weight:300; color:var(--ink); margin-bottom:4px; transition:color .35s; }
+.exp-en { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:13px; color:var(--gold); letter-spacing:2px; display:block; margin-bottom:18px; transition:color .35s; }
+.exp-desc { font-size:13px; color:var(--fog); line-height:1.95; transition:color .35s; margin-bottom:22px; }
+.exp-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:28px; }
+.exp-tag { font-size:10px; letter-spacing:1px; padding:5px 11px; border:1px solid rgba(184,150,90,.2); color:var(--gold); transition:all .35s; }
+.exp-arrow { font-size:20px; color:var(--mist); transition:all .35s; display:inline-block; }
+
+/* HOW TO VISIT */
+.visit-section { background:var(--stone); padding:130px 48px; }
+.visit-inner { max-width:1200px; margin:0 auto; }
+.steps { display:grid; grid-template-columns:repeat(4,1fr); gap:3px; margin-top:72px; }
+.step { background:rgba(250,247,242,.03); padding:40px 32px; border-top:1px solid rgba(184,150,90,.12); transition:background .3s; }
+.step:hover { background:rgba(250,247,242,.06); }
+.step-num { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:62px; color:rgba(184,150,90,.14); line-height:1; margin-bottom:18px; }
+.step-icon { font-size:29px; margin-bottom:14px; display:block; }
+.step-name { font-family:'Noto Serif KR',serif; font-size:19px; font-weight:300; color:var(--white); margin-bottom:10px; }
+.step-desc { font-size:14px; color:var(--fog); line-height:1.9; }
+
+/* RESERVE CTA */
+.reserve-section { background:var(--ink); padding:160px 48px; text-align:center; position:relative; overflow:hidden; }
+.reserve-section::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 70% 50% at 30% 50%,rgba(74,82,64,.2) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 75% 40%,rgba(184,150,90,.07) 0%,transparent 50%); pointer-events:none; }
+.reserve-inner { max-width:560px; margin:0 auto; position:relative; z-index:1; }
+.reserve-title { font-family:'Noto Serif KR',serif; font-size:clamp(30px,5vw,56px); font-weight:200; color:var(--white); line-height:1.6; margin-bottom:24px; }
+.reserve-title em { font-style:italic; font-family:'Cormorant Garamond',serif; color:var(--gold-pale); }
+.reserve-sub { font-size:13px; color:rgba(250,247,242,.35); line-height:2.1; margin-bottom:56px; }
+.reserve-btn { display:inline-block; font-size:11px; letter-spacing:4px; text-transform:uppercase; color:var(--ink); background:var(--gold); text-decoration:none; padding:20px 60px; transition:all .35s; font-weight:400; }
+.reserve-btn:hover { background:var(--gold-pale); transform:translateY(-3px); box-shadow:0 20px 60px rgba(184,150,90,.18); }
+.reserve-note { margin-top:28px; font-size:10px; letter-spacing:2px; color:rgba(250,247,242,.12); text-transform:uppercase; }
+
+/* ACCESS */
+.access-section { background:var(--ash); padding:100px 48px; border-top:1px solid rgba(184,150,90,.08); }
+.access-inner { max-width:1200px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:start; }
+.access-item { margin-bottom:28px; }
+.access-label { font-size:9px; letter-spacing:4px; text-transform:uppercase; color:var(--gold); margin-bottom:8px; display:block; }
+.access-value { font-family:'Noto Serif KR',serif; font-size:15px; font-weight:200; color:rgba(250,247,242,.7); line-height:1.8; }
+
+@media (max-width:900px) {
+  .topnav { padding:16px 24px; }
+  .topnav-links .topnav-link { display:none; }
+  .hero-cta-wrap { flex-direction:column; align-items:center; }
+  .exp-grid { grid-template-columns:1fr; }
+  .steps { grid-template-columns:1fr 1fr; }
+  .access-inner { grid-template-columns:1fr; gap:0; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav class="topnav" id="topnav">
+  <a href="#" class="topnav-brand">온마을<span>ONMAEUL</span></a>
+  <div class="topnav-links">
+    <a href="#experiences" class="topnav-link">체험</a>
+    <a href="#visit" class="topnav-link">방문안내</a>
+    <a href="#access" class="topnav-link">오시는 길</a>
+    <a href="#reserve" class="topnav-reserve">예약하기</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-lines"></div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">경기도 가평 · 수목원로 311</p>
+
+    <div class="hero-wordmark" id="hero-wordmark">
+      <span class="aura-spark" style="left:15%;top:70%;width:3px;height:3px;animation-duration:3.2s;animation-delay:0.3s;"></span>
+      <span class="aura-spark" style="left:80%;top:60%;width:2px;height:2px;animation-duration:2.8s;animation-delay:1.1s;"></span>
+      <span class="aura-spark" style="left:50%;top:85%;width:2px;height:2px;animation-duration:3.6s;animation-delay:0.7s;"></span>
+      <span class="aura-spark" style="left:30%;top:40%;width:3px;height:3px;animation-duration:2.5s;animation-delay:1.8s;"></span>
+      <span class="aura-spark" style="left:70%;top:75%;width:2px;height:2px;animation-duration:3.9s;animation-delay:0.5s;"></span>
+      <span class="aura-spark" style="left:60%;top:25%;width:2px;height:2px;animation-duration:2.2s;animation-delay:2.1s;"></span>
+      <span class="hero-kr">온마을</span>
+      <span class="hero-en">ON<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:2.2em;height:1.2em;vertical-align:middle;margin:0 0.15em;display:inline-block;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>MAEUL</span>
+    </div>
+
+    <div class="hero-divider"></div>
+
+    <p class="hero-tagline">
+      마을 전체가 <em>당신의 호텔</em>입니다<br>
+      경기도 가평 · 수목원로 311 · 아침고요상생연대
+    </p>
+    <div class="hero-cta-wrap">
+      <a href="#reserve" class="btn-primary">체험 예약하기</a>
+      <a href="#experiences" class="btn-ghost">체험 둘러보기</a>
+    </div>
+  </div>
+
+  <div class="hero-footer">
+    <span class="hero-footer-left">Gapyeong · Gyeonggi · Republic of Korea</span>
+    <span class="hero-footer-right">Achimsogo Mutual Cooperative</span>
+  </div>
+</section>
+
+
+<!-- ── BRAND CONCEPT ── -->
+<section class="concept">
+  <div class="concept-inner">
+    <p class="section-label">Brand<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>Concept</p>
+    
+
+    <div class="concept-grid">
+      <div class="concept-text">
+        <blockquote class="big-quote">
+          "프론트, 로비가 없는<br>
+          마을 전체가 하나의 호텔입니다."
+        </blockquote>
+        <p>온마을은 아침고요상생연대의 7개 사업장 — 카페, BBQ, 힐링숲, 펜션, 식당, 편의점 — 이 하나의 경험으로 연결되는 마을호텔 브랜드입니다.</p>
+        <p>서울에서 1시간. 체크인은 자카란다 커피 한 잔으로, 식사는 정원 숯불 BBQ로, 산책은 힐링숲으로, 밤은 펜션에서. 동선 자체가 브랜드가 됩니다.</p>
+      </div>
+
+      <div class="concept-meaning">
+        <div class="meaning-item">
+          <div class="meaning-kr">온(溫)<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>따뜻함</div>
+          <span class="meaning-en">Warmth</span>
+          <p class="meaning-desc">마을의 온기. 협동조합이 만들어내는 사람 냄새 나는 환대. 체인 호텔이 줄 수 없는 온도.</p>
+        </div>
+        <div class="meaning-item">
+          <div class="meaning-kr">온(全)<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>온전함</div>
+          <span class="meaning-en">Wholeness</span>
+          <p class="meaning-desc">마을전체. 마을이 가진 이야기로 하나의 경험으로 기억됩니다.</p>
+        </div>
+        <div class="meaning-item">
+          <div class="meaning-kr">온(來)<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>오다</div>
+          <span class="meaning-en">Arrival</span>
+          <p class="meaning-desc">"온마을에 오다." 방문 행위 자체가 브랜드 언어가 된다. 마실 오듯, 자연스럽게.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── EXPERIENCES ── -->
+<section class="exp-section" id="experiences">
+  <div class="exp-inner">
+    <div class="exp-header reveal">
+      <span class="sec-eyebrow">Exper<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>iences</span>
+      <h2 class="sec-title">온마을의 <em>특별한 하루</em></h2>
+      <p class="sec-sub">마을 전체가 무대입니다. 카페에서 시작해 숲을 걷고, 다이닝으로 마무리되는 온전한 하루.</p>
+    </div>
+    <div class="exp-grid">
+      <a href="#reserve" class="exp-card reveal reveal-d1">
+        <img class="exp-card-img" src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&q=80" alt="자카란다 카페">
+        <div class="exp-card-inner exp-card-body">
+          <span class="exp-name">자카란다 카페</span>
+          <span class="exp-en">Jacaranda Café</span>
+          <p class="exp-desc">가평의 햇살 아래 핸드드립 한 잔. 마을의 아침을 여는 공간에서 여유로운 시간을 보내세요.</p>
+          <div class="exp-tags">
+            <span class="exp-tag">핸드드립</span>
+            <span class="exp-tag">시즌 음료</span>
+            <span class="exp-tag">디저트</span>
+          </div>
+          <span class="exp-arrow">→</span>
+        </div>
+      </a>
+      <a href="#reserve" class="exp-card reveal reveal-d2">
+        <img class="exp-card-img" src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80" alt="마을 다이닝">
+        <div class="exp-card-inner exp-card-body">
+          <span class="exp-name">마을 다이닝</span>
+          <span class="exp-en">Village Dining</span>
+          <p class="exp-desc">지역 식재료로 만든 코스 요리. 마을 사람들의 식탁을 그대로 옮겨온 따뜻한 한 끼입니다.</p>
+          <div class="exp-tags">
+            <span class="exp-tag">로컬 식재료</span>
+            <span class="exp-tag">코스 요리</span>
+            <span class="exp-tag">예약 필수</span>
+          </div>
+          <span class="exp-arrow">→</span>
+        </div>
+      </a>
+      <a href="#reserve" class="exp-card reveal reveal-d3">
+        <img class="exp-card-img" src="https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80" alt="숲 체험">
+        <div class="exp-card-inner exp-card-body">
+          <span class="exp-name">숲 체험</span>
+          <span class="exp-en">Forest Experience</span>
+          <p class="exp-desc">수목원로의 숲길을 따라 걷는 치유의 시간. 가이드와 함께하는 작은 자연 탐험.</p>
+          <div class="exp-tags">
+            <span class="exp-tag">숲길 트레킹</span>
+            <span class="exp-tag">자연 치유</span>
+            <span class="exp-tag">소규모 진행</span>
+          </div>
+          <span class="exp-arrow">→</span>
+        </div>
+      </a>
+      <a href="#reserve" class="exp-card reveal reveal-d4">
+        <img class="exp-card-img" src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80" alt="온마을 스테이">
+        <div class="exp-card-inner exp-card-body">
+          <span class="exp-name">온마을 스테이</span>
+          <span class="exp-en">Village Stay</span>
+          <p class="exp-desc">마을 안에서 하루를 온전히. 카페, 다이닝, 숲이 모두 걸어서 닿는 거리에 있습니다.</p>
+          <div class="exp-tags">
+            <span class="exp-tag">1박 2일</span>
+            <span class="exp-tag">체험 연계</span>
+            <span class="exp-tag">소규모</span>
+          </div>
+          <span class="exp-arrow">→</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── RESERVE CTA ── -->
+<section class="reserve-section" id="reserve">
+  <div class="reserve-inner">
+    <div class="reveal">
+      <h2 class="reserve-title">마실 오듯,<br><em>온마을</em>에 머무세요</h2>
+      <p class="reserve-sub">
+        예약은 노션 폼으로 간편하게 신청하실 수 있습니다.<br>
+        담당자 확인 후 카카오톡으로 연락드립니다.
+      </p>
+      <a href="https://www.notion.so/your-form-link" class="reserve-btn" target="_blank">체험 예약 신청하기</a>
+      <p class="reserve-note">notion form · 간편 예약</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── ACCESS ── -->
+<section class="access-section" id="access">
+  <div class="access-inner">
+    <div class="reveal">
+      <span class="sec-eyebrow">오시는<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>길</span>
+      <h2 class="sec-title" style="color:var(--white)">Access</h2>
+      <div class="access-item">
+        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>주소</span>
+        <div class="access-value">경기도 가평군 상면 수목원로 311<br>아침고요상생연대협동조합</div>
+      </div>
+      <div class="access-item">
+        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>자가용</span>
+        <div class="access-value">내비게이션 검색: 수목원로 311<br>또는 아침고요수목원 방면</div>
+      </div>
+      <div class="access-item">
+        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>대중교통</span>
+        <div class="access-value">가평역 하차 → 버스 또는 택시 이용<br>(약 15~20분 소요)</div>
+      </div>
+    </div>
+    <div class="reveal reveal-d2">
+      <div class="access-item">
+        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>운영 시간</span>
+        <div class="access-value">카페: 매일 10:00 – 18:00<br>다이닝: 예약제 운영<br>스테이: 체크인 15:00 / 체크아웃 11:00</div>
+      </div>
+      <div class="access-item">
+        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>문의</span>
+        <div class="access-value">카카오톡 채널: 온마을가평<br>인스타그램: @onmaeul_311</div>
+      </div>
+      <div class="access-item">
+        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>주의사항</span>
+        <div class="access-value">모든 체험은 사전 예약제로 운영됩니다.<br>당일 예약은 담당자 확인 후 가능합니다.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── SLOGAN ── -->
+<style>
+.slogan-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.slogan-word.up { opacity: 1; transform: translateY(0); }
+.slogan-line { overflow: hidden; display: block; }
+#slogan-en-wrap, #slogan-sub-wrap {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+#slogan-en-wrap.up, #slogan-sub-wrap.up { opacity: 1; transform: translateY(0); }
+</style>
+<section class="slogan-section" id="slogan-section">
+  <p class="slogan-kr" id="slogan-kr">
+    <span class="slogan-line" id="slogan-line1"></span>
+    <span class="slogan-line" id="slogan-line2"></span>
+  </p>
+  <div class="slogan-divider" id="slogan-div1" style="opacity:0;transition:opacity 1s ease 0.3s;"></div>
+  <p class="slogan-en" id="slogan-en-wrap" style="">Come as you would visit a neighbor.<br>The whole village is your hotel.</p>
+  <div class="slogan-divider" id="slogan-div2" style="opacity:0;transition:opacity 1s ease 0.5s;"></div>
+  <p class="slogan-sub" id="slogan-sub-wrap" style="">ONMAEUL · Gapyeong · 수목원로 311</p>
+</section>
+<script>
+(function() {
+  const lines = [
+    { el: 'slogan-line1', words: ['마실', '오듯,', '<span style="color:var(--gold-pale)">온마을</span>에', '머무세요'] },
+    { el: 'slogan-line2', words: ['마을', '전체가', '당신의', '호텔입니다'] }
+  ];
+
+  let started = false;
+
+  function animateLines() {
+    if (started) return;
+    started = true;
+
+    let totalDelay = 0;
+    lines.forEach(function(line, li) {
+      const el = document.getElementById(line.el);
+      line.words.forEach(function(word, wi) {
+        const span = document.createElement('span');
+        span.className = 'slogan-word';
+        span.innerHTML = word + (wi < line.words.length - 1 ? '&nbsp;' : '');
+        span.style.transitionDelay = totalDelay + 's';
+        el.appendChild(span);
+        totalDelay += 0.12;
+      });
+      // 줄 사이 간격
+      totalDelay += 0.15;
+    });
+
+    // 단어들 순차 등장
+    setTimeout(function() {
+      document.querySelectorAll('.slogan-word').forEach(function(s) {
+        s.classList.add('up');
+      });
+    }, 100);
+
+    // 구분선 + 영문 + 서브 페이드인
+    const lastDelay = totalDelay * 1000 + 300;
+    setTimeout(function() {
+      document.getElementById('slogan-div1').style.opacity = '1';
+      document.getElementById('slogan-en-wrap').classList.add('up');
+    }, lastDelay);
+    setTimeout(function() {
+      document.getElementById('slogan-div2').style.opacity = '1';
+      document.getElementById('slogan-sub-wrap').classList.add('up');
+    }, lastDelay + 400);
+  }
+
+  const section = document.getElementById('slogan-section');
+  const obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) { animateLines(); obs.disconnect(); }
+    });
+  }, { threshold: 0.25 });
+  obs.observe(section);
+})();
+</script>
+
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-brand">
+    온마을
+    <span>ON<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>MAEUL</span>
+  </div>
+  <div class="footer-info">
+    아침고요상생연대협동조합<br>
+    경기도 가평군 상면 수목원로 311<br>
+    @onmaeul_311 · @jacaranda311
+  </div>
+</footer>
+
+<script>
+// NAV scroll effect
+const nav = document.getElementById('topnav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 60);
+});
+
+// Reveal on scroll
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+reveals.forEach(el => observer.observe(el));
+
+// Smooth scroll for nav links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+
+</body>
+</html>
