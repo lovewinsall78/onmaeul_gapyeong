@@ -2462,37 +2462,26 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 
 <!-- ═══════════════════════════════════════════════
      온패스 페이지 (?pass=TOKEN)
-     고객이 링크로 접속하면 QR + 패스 정보 표시
+     순수 JS QR 생성 — 외부 API 없음
 ═══════════════════════════════════════════════ -->
 <div id="onpass-screen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a1a0a;z-index:9999;overflow-y:auto;">
   <div style="max-width:400px;margin:0 auto;padding:40px 24px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-    <!-- 로고 -->
     <div style="margin-bottom:32px;text-align:center;">
       <div style="font-size:13px;letter-spacing:4px;color:#5a8a5a;text-transform:uppercase;margin-bottom:6px;">ONMAEUL GAPYEONG</div>
       <div style="font-size:22px;font-weight:700;color:#c8e6c9;letter-spacing:-0.5px;">온마을 스테이패스</div>
     </div>
-
-    <!-- 패스 카드 -->
     <div id="onpass-card" style="width:100%;background:#111e11;border:1px solid #2a4a2a;border-radius:20px;padding:28px 24px;text-align:center;">
       <div id="onpass-loading" style="color:#5a8a5a;font-size:14px;padding:40px 0;">패스 정보를 불러오는 중...</div>
-
       <div id="onpass-content" style="display:none;">
-        <!-- 고객명 -->
         <div id="onpass-name" style="font-size:26px;font-weight:900;color:#c8e6c9;margin-bottom:4px;"></div>
         <div id="onpass-program" style="font-size:13px;color:#5a8a5a;margin-bottom:24px;"></div>
-
-        <!-- QR 코드 -->
         <div style="background:#fff;border-radius:14px;padding:16px;display:inline-block;margin-bottom:20px;">
-          <img id="onpass-qr" width="180" height="180" style="display:block;" alt="QR코드">
+          <canvas id="onpass-qr-canvas" width="200" height="200"></canvas>
         </div>
-
-        <!-- 패스 정보 -->
         <div style="background:#0d150d;border-radius:10px;padding:14px;margin-bottom:16px;">
           <div style="font-size:11px;color:#5a8a5a;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">PASS NUMBER</div>
           <div id="onpass-token" style="font-size:13px;font-family:monospace;color:#81c784;letter-spacing:1px;word-break:break-all;"></div>
         </div>
-
-        <!-- 날짜 -->
         <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
           <div style="text-align:left;">
             <div style="font-size:10px;color:#5a8a5a;letter-spacing:1px;text-transform:uppercase;">체험 날짜</div>
@@ -2504,14 +2493,11 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
           </div>
         </div>
       </div>
-
       <div id="onpass-error" style="display:none;color:#ef9a9a;font-size:14px;padding:20px 0;">
         유효하지 않은 패스입니다.<br>
         <small style="color:#5a8a5a;font-size:12px;">패스번호를 다시 확인해 주세요.</small>
       </div>
     </div>
-
-    <!-- 안내문구 -->
     <div style="margin-top:20px;font-size:12px;color:#3a5a3a;text-align:center;line-height:1.8;">
       업주에게 이 화면을 보여주세요<br>
       문의: 카카오채널 @온마을가평
@@ -2520,82 +2506,214 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 </div>
 
 <script>
-// QR 코드 생성 (qrcodejs)
+/* ── 순수 JS QR 코드 생성기 (외부 라이브러리 없음) ── */
+var QRGen = (function() {
+  /* Reed-Solomon + QR Matrix 생성 — 영문/숫자 모드 */
+  var _gf = [], _ex = [], _log = [];
+  (function() {
+    var v = 1;
+    for (var i = 0; i < 256; i++) {
+      _ex[i] = v; _log[v] = i;
+      v = v << 1; if (v & 256) v ^= 285;
+    }
+    for (var i = 255; i < 512; i++) _ex[i] = _ex[i - 255];
+  })();
+
+  function _gfMul(a, b) { return a === 0 || b === 0 ? 0 : _ex[_log[a] + _log[b]]; }
+  function _gfPoly(d) {
+    var p = [1];
+    for (var i = 0; i < d; i++) {
+      var q = [1, _ex[i]];
+      var t = new Array(p.length + q.length - 1).fill(0);
+      for (var j = 0; j < p.length; j++)
+        for (var k = 0; k < q.length; k++)
+          t[j+k] ^= _gfMul(p[j], q[k]);
+      p = t;
+    }
+    return p;
+  }
+  function _rsEncode(data, nec) {
+    var gen = _gfPoly(nec);
+    var msg = data.concat(new Array(nec).fill(0));
+    for (var i = 0; i < data.length; i++) {
+      var c = msg[i];
+      if (c !== 0)
+        for (var j = 0; j < gen.length; j++)
+          msg[i+j] ^= _gfMul(gen[j], c);
+    }
+    return msg.slice(data.length);
+  }
+
+  /* QR version 3 (29x29), EC level M — 영숫자 최대 47자 */
+  function make(text) {
+    var SIZE = 29, EC = 15;
+    /* 바이트 인코딩 사용 (UTF-8 불필요 — 패스번호는 ASCII) */
+    var bytes = [];
+    for (var i = 0; i < text.length; i++) bytes.push(text.charCodeAt(i) & 0xFF);
+
+    /* 데이터 비트스트림 */
+    var bits = [];
+    function addBits(val, len) {
+      for (var i = len-1; i >= 0; i--) bits.push((val >> i) & 1);
+    }
+    addBits(0b0100, 4);          // 바이트 모드
+    addBits(bytes.length, 8);    // 문자 수
+    for (var i = 0; i < bytes.length; i++) addBits(bytes[i], 8);
+    addBits(0, 4);               // 종료자
+    while (bits.length % 8) bits.push(0);
+
+    /* 패딩 */
+    var pads = [0xEC, 0x11];
+    var maxData = 44; // version 3M 데이터 코드워드
+    while (bits.length < maxData * 8) {
+      addBits(pads[(bits.length/8 % 2)], 8);
+    }
+
+    /* 바이트 배열 */
+    var dataBytes = [];
+    for (var i = 0; i < bits.length; i += 8) {
+      var b = 0;
+      for (var j = 0; j < 8; j++) b = (b << 1) | (bits[i+j] || 0);
+      dataBytes.push(b);
+    }
+
+    /* RS 에러 코드 */
+    var ec = _rsEncode(dataBytes, EC);
+    var allBytes = dataBytes.concat(ec);
+
+    /* QR 매트릭스 */
+    var mat = [];
+    for (var i = 0; i < SIZE; i++) { mat.push([]); for (var j = 0; j < SIZE; j++) mat[i].push(-1); }
+
+    function setMod(r, c, v) { if (r>=0&&r<SIZE&&c>=0&&c<SIZE) mat[r][c]=v; }
+    function isFunc(r, c) { return mat[r][c] !== -1; }
+
+    /* Finder 패턴 */
+    function finder(tr, tc) {
+      for (var r=-1; r<=7; r++) for (var c=-1; c<=7; c++) {
+        var v = (r===0||r===6||c===0||c===6||( r>=2&&r<=4&&c>=2&&c<=4)) ? 1:0;
+        if (r>=0&&r<7&&c>=0&&c<7) setMod(tr+r, tc+c, v);
+        else setMod(tr+r, tc+c, 0);
+      }
+    }
+    finder(0,0); finder(0,SIZE-7); finder(SIZE-7,0);
+
+    /* Timing 패턴 */
+    for (var i=8; i<SIZE-8; i++) { setMod(6,i,i%2===0?1:0); setMod(i,6,i%2===0?1:0); }
+
+    /* Dark module */
+    setMod(SIZE-8, 8, 1);
+
+    /* Format info (mask 0, EC level M = 01) */
+    var fmtBits = [1,1,0,1,0,0,0,0,0,1,0,0,1,1,1];
+    var fp = [[8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[8,7],[8,8],[7,8],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8]];
+    var fp2 = [[SIZE-1,8],[SIZE-2,8],[SIZE-3,8],[SIZE-4,8],[SIZE-5,8],[SIZE-6,8],[SIZE-7,8],[8,SIZE-8],[8,SIZE-7],[8,SIZE-6],[8,SIZE-5],[8,SIZE-4],[8,SIZE-3],[8,SIZE-2],[8,SIZE-1]];
+    for (var i=0; i<15; i++) { setMod(fp[i][0],fp[i][1],fmtBits[i]); setMod(fp2[i][0],fp2[i][1],fmtBits[i]); }
+
+    /* 데이터 배치 */
+    var allBits = [];
+    for (var i=0; i<allBytes.length; i++) for (var j=7; j>=0; j--) allBits.push((allBytes[i]>>j)&1);
+
+    var bi = 0;
+    var upward = true;
+    for (var col = SIZE-1; col >= 0; col -= 2) {
+      if (col === 6) col--;
+      for (var ri = 0; ri < SIZE; ri++) {
+        var row = upward ? (SIZE-1-ri) : ri;
+        for (var dc = 0; dc < 2; dc++) {
+          var c = col - dc;
+          if (!isFunc(row, c)) {
+            var bit = bi < allBits.length ? allBits[bi++] : 0;
+            /* mask 0: (row+col)%2===0 → invert */
+            mat[row][c] = ((row+c)%2===0) ? bit^1 : bit;
+          }
+        }
+      }
+      upward = !upward;
+    }
+
+    return mat;
+  }
+
+  return {
+    draw: function(canvasId, text) {
+      try {
+        var mat = make(text);
+        var canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        var SIZE = mat.length;
+        var SCALE = Math.floor(200 / (SIZE + 8));
+        var MARGIN = Math.floor((200 - SIZE * SCALE) / 2);
+        canvas.width = canvas.height = 200;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, 200, 200);
+        ctx.fillStyle = '#000';
+        for (var r = 0; r < SIZE; r++)
+          for (var c = 0; c < SIZE; c++)
+            if (mat[r][c] === 1)
+              ctx.fillRect(MARGIN + c*SCALE, MARGIN + r*SCALE, SCALE, SCALE);
+      } catch(e) {
+        /* QR 생성 실패 시 텍스트로 대체 */
+        var canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0,0,200,200);
+        ctx.fillStyle = '#1B5E20'; ctx.font = 'bold 11px monospace';
+        ctx.textAlign = 'center';
+        var words = text.split('-');
+        for (var i=0; i<words.length; i++)
+          ctx.fillText(words[i], 100, 80 + i*18);
+      }
+    }
+  };
+})();
+
+/* ── 온패스 페이지 초기화 ── */
 (function() {
   var params = new URLSearchParams(location.search);
   var passToken = params.get('pass');
   if (!passToken) return;
 
-  // 온패스 화면 표시
   document.getElementById('onpass-screen').style.display = 'block';
   document.body.style.overflow = 'hidden';
 
-  // QR 코드 생성 (Google Chart API — 별도 라이브러리 불필요)
-  loadPassData(passToken);
-
-  function loadPassData(token) {
-    // Firebase에서 패스 데이터 로드
-    var maxWait = 5000;
-    var start = Date.now();
-
-    function tryLoad() {
-      if (typeof firebase === 'undefined' || !window._fbDB) {
-        if (Date.now() - start < maxWait) {
-          setTimeout(tryLoad, 300);
-        } else {
-          showPassDirect(token); // Firebase 없으면 토큰만 표시
-        }
-        return;
-      }
-      window._fbDB.collection('customers')
-        .where('qrToken', '==', token)
-        .get()
-        .then(function(snap) {
-          if (snap.empty) {
-            // ID로도 검색
-            return window._fbDB.collection('customers').doc(token).get()
-              .then(function(doc) {
-                if (doc.exists) return renderPass(doc.data());
-                showPassDirect(token);
-              });
-          }
-          renderPass(snap.docs[0].data());
-        })
-        .catch(function() { showPassDirect(token); });
-    }
-    tryLoad();
-  }
-
-  function renderPass(c) {
+  function showContent(name, program, token, date, people) {
     document.getElementById('onpass-loading').style.display = 'none';
     document.getElementById('onpass-content').style.display = 'block';
-
-    document.getElementById('onpass-name').textContent = c.name || '-';
-    document.getElementById('onpass-program').textContent = c.program || '온마을 가평 체험';
-    document.getElementById('onpass-token').textContent = c.qrToken || '-';
-    document.getElementById('onpass-date').textContent = c.date || '-';
-    document.getElementById('onpass-people').textContent = (c.people || '-') + '명';
-
-    // QR 생성 (Google Chart API)
-    var qrText = encodeURIComponent(c.qrToken || token);
-    document.getElementById('onpass-qr').src =
-      'https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=' + qrText + '&choe=UTF-8&chld=M|2';
-  }
-
-  function showPassDirect(token) {
-    document.getElementById('onpass-loading').style.display = 'none';
-    document.getElementById('onpass-content').style.display = 'block';
-    document.getElementById('onpass-name').textContent = '온마을 패스';
-    document.getElementById('onpass-program').textContent = '온마을 가평';
+    document.getElementById('onpass-name').textContent = name;
+    document.getElementById('onpass-program').textContent = program;
     document.getElementById('onpass-token').textContent = token;
-    document.getElementById('onpass-date').textContent = '-';
-    document.getElementById('onpass-people').textContent = '-';
-
-    // QR 생성 (Google Chart API)
-    var qrText = encodeURIComponent(token);
-    document.getElementById('onpass-qr').src =
-      'https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=' + qrText + '&choe=UTF-8&chld=M|2';
+    document.getElementById('onpass-date').textContent = date || '-';
+    document.getElementById('onpass-people').textContent = people ? people + '명' : '-';
+    QRGen.draw('onpass-qr-canvas', token);
   }
+
+  /* Firebase 로드 대기 후 데이터 조회 */
+  var waited = 0;
+  function tryLoad() {
+    if (typeof firebase !== 'undefined' && window._fbDB) {
+      window._fbDB.collection('customers')
+        .where('qrToken', '==', passToken).limit(1).get()
+        .then(function(snap) {
+          if (!snap.empty) {
+            var c = snap.docs[0].data();
+            showContent(c.name || '온마을 패스', c.program || '온마을 가평', c.qrToken || passToken, c.date, c.people);
+          } else {
+            showContent('온마을 패스', '온마을 가평', passToken, '', '');
+          }
+        })
+        .catch(function() {
+          showContent('온마을 패스', '온마을 가평', passToken, '', '');
+        });
+    } else if (waited < 5000) {
+      waited += 300;
+      setTimeout(tryLoad, 300);
+    } else {
+      showContent('온마을 패스', '온마을 가평', passToken, '', '');
+    }
+  }
+  tryLoad();
 })();
 </script>
 
