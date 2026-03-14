@@ -4027,6 +4027,39 @@ async function executeSNSSend() {
     document.getElementById('sns-send-result').innerHTML =
       (_snsSendType === 'sms' ? '📱 문자' : '💬 카카오톡') +
       ` 발송 완료!<br><span style="font-size:11px;">${_snsCustData.name}님 · Make → ${_snsSendType === 'sms' ? '솔라피' : '카카오 알림톡'} 전송됨</span>`;
+
+    // 문자 발송 시 방문 1회 자동 기록 (visits 컬렉션)
+    if (_snsSendType === 'sms' && _snsCustData && _snsCustData.id) {
+      try {
+        // 이미 오늘 문자 발송 기록이 있으면 중복 생성 안 함
+        const allVisits = await getAll('visits');
+        const today = new Date().toISOString().split('T')[0];
+        const alreadyLogged = allVisits.some(v =>
+          v.customerId === _snsCustData.id &&
+          v.visitType === 'sms_sent' &&
+          v.visitDate === today
+        );
+        if (!alreadyLogged) {
+          const vid = await genId('visits');
+          await upsert('visits', {
+            id: vid,
+            customerId:   _snsCustData.id,
+            customerName: _snsCustData.name || '',
+            coopId:       0,
+            coopName:     '온마을 가평 (문자 발급)',
+            visitType:    'sms_sent',
+            visitDate:    today,
+            visitTime:    new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'}),
+            discountRate: 0,
+            createdAt:    new Date().toISOString()
+          });
+          invalidateCache('visits');
+          console.log('✅ 방문 1회 자동 기록:', _snsCustData.name);
+        }
+      } catch(ve) {
+        console.warn('방문 기록 실패:', ve.message);
+      }
+    }
   } catch(e) {
     document.getElementById('sns-send-result').style.display = '';
     document.getElementById('sns-send-result').style.background = '#fff0f0';
@@ -4724,13 +4757,31 @@ function stopQRScanner(){
 async function processScan(decodedText){
   stopQRScanner();
   try{
-    let parsed;
-    try{ parsed=JSON.parse(decodedText); }catch(e){ alert('유효하지 않은 QR입니다.'); startQRScanner(); return; }
-    if(parsed.t!=='sp'){ alert('온마을 스테이패스 QR이 아닙니다.'); startQRScanner(); return; }
+    let parsed = null;
+    let qrToken = null;
+
+    // ① JSON 형식 시도 (관리시스템 내부 QR)
+    try{ parsed = JSON.parse(decodedText); }catch(e){}
+
+    if(parsed && parsed.t === 'sp'){
+      // 기존 JSON QR
+      qrToken = parsed.k;
+    } else {
+      // ② URL 형식 처리 (?pass=QR-...)
+      let raw = decodedText.trim();
+      if(raw.includes('?pass=')){ raw = raw.split('?pass=').pop().split('&')[0]; }
+      // ③ 직접 토큰 형식 (QR-숫자 또는 OMSP-...)
+      if(raw.startsWith('QR-') || raw.startsWith('OMSP-')){ qrToken = raw; }
+    }
+
+    if(!qrToken){ alert('유효하지 않은 QR입니다.\n온마을 스테이패스 QR을 스캔해주세요.'); startQRScanner(); return; }
+
     // 고객 조회
     const customers=await getAll('customers');
-    const cust=customers.find(c=>c.id===parsed.c && c.qrToken===parsed.k);
-    if(!cust){ alert('등록되지 않은 패스이거나 유효하지 않은 QR입니다.'); startQRScanner(); return; }
+    const cust = parsed && parsed.c
+      ? customers.find(c=>c.id===parsed.c && c.qrToken===parsed.k)
+      : customers.find(c=>c.qrToken===qrToken);
+    if(!cust){ alert('등록되지 않은 패스입니다.\n패스번호: ' + qrToken); startQRScanner(); return; }
     // 가맹점 정보
     const sel=document.getElementById('scan-coop-sel');
     const coopId=sel?sel.value:'';
@@ -4964,12 +5015,13 @@ async function showPublicPass(token) {
           </div>`).join('') || '<div style="color:#bbb;padding:8px 0;">방문 기록 없음</div>'}
       </div>
     `;
-    // QR 코드 생성
+    // QR 코드 생성 — 관리자 스캔용 토큰만 담기
     const qrBox = document.getElementById('public-pass-qr-box');
     if (qrBox && typeof QRCode !== 'undefined') {
+      qrBox.innerHTML = '';
       new QRCode(qrBox, {
         text: cust.qrToken || token,
-        width: 180, height: 180,
+        width: 200, height: 200,
         colorDark: '#000000',
         colorLight: '#ffffff',
         correctLevel: QRCode.CorrectLevel.M
