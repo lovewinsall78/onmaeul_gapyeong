@@ -1540,6 +1540,19 @@ async function saveToFirebase(payload) {
       passIssuedAt: now.toLocaleString('ko-KR')
     });
     console.log('✅ Firebase 예약 저장:', payload.name);
+    // 관리자 알림 웹훅 (Make → 솔라피)
+    fetch('https://hook.us2.make.com/mpdncqtym3a5ud370g4hpd95b1g6c42j', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name:    payload.name    || '-',
+        phone:   payload.phone   || '-',
+        source:  'QR랜딩페이지',
+        program: payload.program || '-',
+        people:  payload.people  || '-',
+        customerId: id
+      })
+    }).catch(function(e){ console.warn('알림 웹훅 오류:', e); });
   } catch(e) {
     console.warn('Firebase 저장 실패:', e.message);
   }
