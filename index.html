@@ -2459,5 +2459,167 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 
 })();
 </script>
+
+<!-- ═══════════════════════════════════════════════
+     온패스 페이지 (?pass=TOKEN)
+     고객이 링크로 접속하면 QR + 패스 정보 표시
+═══════════════════════════════════════════════ -->
+<div id="onpass-screen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a1a0a;z-index:9999;overflow-y:auto;">
+  <div style="max-width:400px;margin:0 auto;padding:40px 24px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+    <!-- 로고 -->
+    <div style="margin-bottom:32px;text-align:center;">
+      <div style="font-size:13px;letter-spacing:4px;color:#5a8a5a;text-transform:uppercase;margin-bottom:6px;">ONMAEUL GAPYEONG</div>
+      <div style="font-size:22px;font-weight:700;color:#c8e6c9;letter-spacing:-0.5px;">온마을 스테이패스</div>
+    </div>
+
+    <!-- 패스 카드 -->
+    <div id="onpass-card" style="width:100%;background:#111e11;border:1px solid #2a4a2a;border-radius:20px;padding:28px 24px;text-align:center;">
+      <div id="onpass-loading" style="color:#5a8a5a;font-size:14px;padding:40px 0;">패스 정보를 불러오는 중...</div>
+
+      <div id="onpass-content" style="display:none;">
+        <!-- 고객명 -->
+        <div id="onpass-name" style="font-size:26px;font-weight:900;color:#c8e6c9;margin-bottom:4px;"></div>
+        <div id="onpass-program" style="font-size:13px;color:#5a8a5a;margin-bottom:24px;"></div>
+
+        <!-- QR 코드 -->
+        <div style="background:#fff;border-radius:14px;padding:16px;display:inline-block;margin-bottom:20px;">
+          <canvas id="onpass-qr" width="180" height="180"></canvas>
+        </div>
+
+        <!-- 패스 정보 -->
+        <div style="background:#0d150d;border-radius:10px;padding:14px;margin-bottom:16px;">
+          <div style="font-size:11px;color:#5a8a5a;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">PASS NUMBER</div>
+          <div id="onpass-token" style="font-size:13px;font-family:monospace;color:#81c784;letter-spacing:1px;word-break:break-all;"></div>
+        </div>
+
+        <!-- 날짜 -->
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <div style="text-align:left;">
+            <div style="font-size:10px;color:#5a8a5a;letter-spacing:1px;text-transform:uppercase;">체험 날짜</div>
+            <div id="onpass-date" style="font-size:14px;font-weight:600;color:#c8e6c9;margin-top:2px;"></div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:10px;color:#5a8a5a;letter-spacing:1px;text-transform:uppercase;">인원</div>
+            <div id="onpass-people" style="font-size:14px;font-weight:600;color:#c8e6c9;margin-top:2px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="onpass-error" style="display:none;color:#ef9a9a;font-size:14px;padding:20px 0;">
+        유효하지 않은 패스입니다.<br>
+        <small style="color:#5a8a5a;font-size:12px;">패스번호를 다시 확인해 주세요.</small>
+      </div>
+    </div>
+
+    <!-- 안내문구 -->
+    <div style="margin-top:20px;font-size:12px;color:#3a5a3a;text-align:center;line-height:1.8;">
+      업주에게 이 화면을 보여주세요<br>
+      문의: 카카오채널 @온마을가평
+    </div>
+  </div>
+</div>
+
+<script>
+// QR 코드 생성 (qrcodejs)
+(function() {
+  var params = new URLSearchParams(location.search);
+  var passToken = params.get('pass');
+  if (!passToken) return;
+
+  // 온패스 화면 표시
+  document.getElementById('onpass-screen').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+
+  // QRCode 라이브러리 동적 로드
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+  script.onload = function() { loadPassData(passToken); };
+  script.onerror = function() { loadPassData(passToken); }; // QR 없이도 정보 표시
+  document.head.appendChild(script);
+
+  function loadPassData(token) {
+    // Firebase에서 패스 데이터 로드
+    var maxWait = 5000;
+    var start = Date.now();
+
+    function tryLoad() {
+      if (typeof firebase === 'undefined' || !window._fbDB) {
+        if (Date.now() - start < maxWait) {
+          setTimeout(tryLoad, 300);
+        } else {
+          showPassDirect(token); // Firebase 없으면 토큰만 표시
+        }
+        return;
+      }
+      window._fbDB.collection('customers')
+        .where('qrToken', '==', token)
+        .get()
+        .then(function(snap) {
+          if (snap.empty) {
+            // ID로도 검색
+            return window._fbDB.collection('customers').doc(token).get()
+              .then(function(doc) {
+                if (doc.exists) return renderPass(doc.data());
+                showPassDirect(token);
+              });
+          }
+          renderPass(snap.docs[0].data());
+        })
+        .catch(function() { showPassDirect(token); });
+    }
+    tryLoad();
+  }
+
+  function renderPass(c) {
+    document.getElementById('onpass-loading').style.display = 'none';
+    document.getElementById('onpass-content').style.display = 'block';
+
+    document.getElementById('onpass-name').textContent = c.name || '-';
+    document.getElementById('onpass-program').textContent = c.program || '온마을 가평 체험';
+    document.getElementById('onpass-token').textContent = c.qrToken || '-';
+    document.getElementById('onpass-date').textContent = c.date || '-';
+    document.getElementById('onpass-people').textContent = (c.people || '-') + '명';
+
+    // QR 생성
+    var canvas = document.getElementById('onpass-qr');
+    if (typeof QRCode !== 'undefined') {
+      var ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 180, 180);
+      new QRCode(canvas, {
+        text: c.qrToken || token,
+        width: 180, height: 180,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } else {
+      // QR 라이브러리 없을 때 패스번호만 크게
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, 180, 180);
+      ctx.fillStyle = '#1B5E20';
+      ctx.font = 'bold 12px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(c.qrToken || token, 90, 95);
+    }
+  }
+
+  function showPassDirect(token) {
+    document.getElementById('onpass-loading').style.display = 'none';
+    document.getElementById('onpass-content').style.display = 'block';
+    document.getElementById('onpass-name').textContent = '온마을 패스';
+    document.getElementById('onpass-program').textContent = '온마을 가평';
+    document.getElementById('onpass-token').textContent = token;
+    document.getElementById('onpass-date').textContent = '-';
+    document.getElementById('onpass-people').textContent = '-';
+
+    var canvas = document.getElementById('onpass-qr');
+    if (typeof QRCode !== 'undefined') {
+      new QRCode(canvas, { text: token, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
+    }
+  }
+})();
+</script>
+
 </body>
 </html>
