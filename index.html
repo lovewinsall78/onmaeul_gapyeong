@@ -2483,7 +2483,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 
         <!-- QR 코드 -->
         <div style="background:#fff;border-radius:14px;padding:16px;display:inline-block;margin-bottom:20px;">
-          <canvas id="onpass-qr" width="180" height="180"></canvas>
+          <img id="onpass-qr" width="180" height="180" style="display:block;" alt="QR코드">
         </div>
 
         <!-- 패스 정보 -->
@@ -2530,12 +2530,8 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   document.getElementById('onpass-screen').style.display = 'block';
   document.body.style.overflow = 'hidden';
 
-  // QRCode 라이브러리 동적 로드
-  var script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
-  script.onload = function() { loadPassData(passToken); };
-  script.onerror = function() { loadPassData(passToken); }; // QR 없이도 정보 표시
-  document.head.appendChild(script);
+  // QR 코드 생성 (Google Chart API — 별도 라이브러리 불필요)
+  loadPassData(passToken);
 
   function loadPassData(token) {
     // Firebase에서 패스 데이터 로드
@@ -2580,28 +2576,10 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     document.getElementById('onpass-date').textContent = c.date || '-';
     document.getElementById('onpass-people').textContent = (c.people || '-') + '명';
 
-    // QR 생성
-    var canvas = document.getElementById('onpass-qr');
-    if (typeof QRCode !== 'undefined') {
-      var ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, 180, 180);
-      new QRCode(canvas, {
-        text: c.qrToken || token,
-        width: 180, height: 180,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-      });
-    } else {
-      // QR 라이브러리 없을 때 패스번호만 크게
-      var ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, 180, 180);
-      ctx.fillStyle = '#1B5E20';
-      ctx.font = 'bold 12px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(c.qrToken || token, 90, 95);
-    }
+    // QR 생성 (Google Chart API)
+    var qrText = encodeURIComponent(c.qrToken || token);
+    document.getElementById('onpass-qr').src =
+      'https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=' + qrText + '&choe=UTF-8&chld=M|2';
   }
 
   function showPassDirect(token) {
@@ -2613,10 +2591,10 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     document.getElementById('onpass-date').textContent = '-';
     document.getElementById('onpass-people').textContent = '-';
 
-    var canvas = document.getElementById('onpass-qr');
-    if (typeof QRCode !== 'undefined') {
-      new QRCode(canvas, { text: token, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
-    }
+    // QR 생성 (Google Chart API)
+    var qrText = encodeURIComponent(token);
+    document.getElementById('onpass-qr').src =
+      'https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=' + qrText + '&choe=UTF-8&chld=M|2';
   }
 })();
 </script>
