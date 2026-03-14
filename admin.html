@@ -4832,7 +4832,7 @@ async function recordVisit(){
     const session=getSession();
     const data={
       ..._pendingVisit,
-      staffId:session?session.uid:null,
+      staffId:session?session.id:null,
       staffName:session?session.name:'',
       createdAt:new Date().toISOString()
     };
