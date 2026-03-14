@@ -4951,6 +4951,9 @@ async function showPublicPass(token) {
         <div style="font-size:32px;font-weight:900;color:var(--primary);margin-top:8px;">${cnt}<span style="font-size:14px;font-weight:400;"> 회 방문</span></div>
         ${tier.next ? `<div style="font-size:12px;color:#999;margin-top:4px;">다음 등급까지 ${tier.next}</div>` : '<div style="font-size:12px;color:gold;">🏆 최상위 등급!</div>'}
       </div>
+      <div style="background:#fff;border-radius:12px;padding:14px;display:inline-block;margin-bottom:12px;" id="public-pass-qr-wrap">
+        <div id="public-pass-qr-box"></div>
+      </div>
       <div style="font-size:12px;color:#bbb;font-family:monospace;margin-bottom:16px;">${cust.qrToken}</div>
       <div style="text-align:left;max-height:200px;overflow-y:auto;">
         <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px;">최근 방문 기록</div>
@@ -4961,6 +4964,17 @@ async function showPublicPass(token) {
           </div>`).join('') || '<div style="color:#bbb;padding:8px 0;">방문 기록 없음</div>'}
       </div>
     `;
+    // QR 코드 생성
+    const qrBox = document.getElementById('public-pass-qr-box');
+    if (qrBox && typeof QRCode !== 'undefined') {
+      new QRCode(qrBox, {
+        text: cust.qrToken || token,
+        width: 180, height: 180,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
   } catch(e) {
     body.innerHTML = '<div style="color:#c62828;">오류 발생: ' + e.message + '</div>';
   }
