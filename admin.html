@@ -3935,7 +3935,7 @@ async function openSNSSend(docId, name, type) {
       '[' + R.fullName + ']\n안녕하세요 ' + (_snsCustData.name || name) + '님!\n' +
       (prog  ? '체험 프로그램: ' + prog + '\n' : '') +
       (date  ? '체험 일자: ' + date + '\n' : '') +
-      (token ? '\n아래 링크를 저장해 두세요 :)\nhttps://lovewinsall78.github.io/onmaeul_gapyeong/?pass=' + token + '\n(방문 시 업주에게 보여주세요)\n' : '') +
+      (token ? '\n아래 링크를 저장해 두세요 :)\nhttps://lovewinsall78.github.io/onmaeul_gapyeong/admin?pass=' + token + '\n(방문 시 업주에게 보여주세요)\n' : '') +
       '\n문의: 카카오채널 ' + R.kakaoChannelId + '\n' + R.kakaoChannelUrl + '';
   } else {
     document.getElementById('sns-message').value =
@@ -4809,7 +4809,7 @@ function openPassSMS(custId, name, phone, token){
   if(typeof openSNSSend === "function") {
     openSNSSend(String(custId), name, "sms");
   } else {
-    var passUrl = 'https://lovewinsall78.github.io/onmaeul_gapyeong/?pass=' + token;
+    var passUrl = 'https://lovewinsall78.github.io/onmaeul_gapyeong/admin?pass=' + token;
     var msg = "[" + R.fullName + "]\n" +
       "안녕하세요 " + name + "님!\n" +
       (token ? "\n아래 링크를 저장해 두세요 :)\n" + passUrl + "\n" : "") +
