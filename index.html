@@ -2467,7 +2467,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   var passToken = params.get('pass');
   if (!passToken) return;
   // admin 페이지의 showPublicPass로 리다이렉트 (검증된 QR 사용)
-  location.replace('https://lovewinsall78.github.io/onmaeul_gapyeong/admin?pass=' + encodeURIComponent(passToken));
+  location.replace('https://lovewinsall78.github.io/onmaeul_gapyeong/pass.html?pass=' + encodeURIComponent(passToken));
 })();
 </script>
 

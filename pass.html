@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>온마을 스테이패스</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  min-height: 100vh;
+  background: #0a1a0a;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #c8e6c9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.wrap {
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.logo-sub { font-size: 12px; letter-spacing: 4px; color: #4a7a4a; text-transform: uppercase; margin-bottom: 6px; }
+.logo-main { font-size: 22px; font-weight: 700; color: #c8e6c9; letter-spacing: -0.5px; margin-bottom: 36px; }
+.card {
+  width: 100%;
+  background: #111e11;
+  border: 1px solid #2a4a2a;
+  border-radius: 20px;
+  padding: 28px 24px;
+  text-align: center;
+}
+.loading { color: #4a7a4a; font-size: 14px; padding: 48px 0; }
+.loading-dot { display: inline-block; animation: blink 1.2s ease-in-out infinite; }
+.loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
+.cust-name { font-size: 28px; font-weight: 900; color: #c8e6c9; margin-bottom: 4px; }
+.cust-program { font-size: 13px; color: #4a7a4a; margin-bottom: 24px; }
+.qr-wrap {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+#qr-canvas { display: block; }
+.pass-num-box {
+  background: #0a150a;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+.pass-num-label { font-size: 10px; color: #4a7a4a; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+.pass-num-val { font-size: 13px; font-family: monospace; color: #81c784; letter-spacing: 1px; word-break: break-all; }
+.info-row { display: flex; justify-content: space-between; }
+.info-item { text-align: left; }
+.info-item:last-child { text-align: right; }
+.info-label { font-size: 10px; color: #4a7a4a; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.info-val { font-size: 15px; font-weight: 700; color: #c8e6c9; }
+.tier-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin: 12px 0 0;
+}
+.tier-bronze { background: #3d2b1f; color: #cd7f32; border: 1px solid #7a4020; }
+.tier-silver { background: #1e2a2a; color: #a0b0b0; border: 1px solid #4a6060; }
+.tier-gold   { background: #2a2000; color: #ffd700; border: 1px solid #7a5a00; }
+.tier-vip    { background: #1a0a2a; color: #c084fc; border: 1px solid #6a2aaa; }
+.visit-count { font-size: 32px; font-weight: 900; color: #81c784; margin-top: 12px; }
+.visit-label { font-size: 13px; color: #4a7a4a; }
+.visit-next { font-size: 12px; color: #3a6a3a; margin-top: 4px; }
+.footer-note { margin-top: 20px; font-size: 12px; color: #2a4a2a; text-align: center; line-height: 2; }
+.error-msg { color: #ef9a9a; font-size: 14px; padding: 32px 0; line-height: 2; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo-sub">ONMAEUL GAPYEONG</div>
+  <div class="logo-main">온마을 스테이패스</div>
+
+  <div class="card">
+    <div class="loading" id="loading">
+      불러오는 중<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span>
+    </div>
+    <div id="content" style="display:none;">
+      <div class="cust-name" id="cust-name"></div>
+      <div class="cust-program" id="cust-program"></div>
+      <div class="qr-wrap">
+        <canvas id="qr-canvas" width="200" height="200"></canvas>
+      </div>
+      <div class="pass-num-box">
+        <div class="pass-num-label">PASS NUMBER</div>
+        <div class="pass-num-val" id="pass-num"></div>
+      </div>
+      <div class="info-row">
+        <div class="info-item">
+          <div class="info-label">체험 날짜</div>
+          <div class="info-val" id="cust-date">-</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">인원</div>
+          <div class="info-val" id="cust-people">-</div>
+        </div>
+      </div>
+      <div class="visit-count" id="visit-count">0</div>
+      <div class="visit-label">회 방문</div>
+      <div class="tier-badge tier-bronze" id="tier-badge">BRONZE</div>
+      <div class="visit-next" id="visit-next"></div>
+    </div>
+    <div class="error-msg" id="error" style="display:none;">
+      유효하지 않은 패스입니다.<br>
+      <span style="font-size:12px;color:#4a7a4a;">패스번호를 다시 확인해 주세요.</span>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    업주에게 이 화면을 보여주세요<br>
+    카카오채널 @온마을가평
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+var fbConfig = {
+  apiKey:            "AIzaSyBFBX_W5Qk-XKL9K918e6NUwXwG8pLvETk",
+  authDomain:        "onmaeul-2e7ea.firebaseapp.com",
+  projectId:         "onmaeul-2e7ea",
+  storageBucket:     "onmaeul-2e7ea.firebasestorage.app",
+  messagingSenderId: "448985054380",
+  appId:             "1:448985054380:web:e93f7e4d0b2fa92c95f309"
+};
+
+firebase.initializeApp(fbConfig);
+var db = firebase.firestore();
+
+function getTier(cnt) {
+  if (cnt >= 20) return { label: 'VIP',    cls: 'tier-vip',    next: null };
+  if (cnt >= 10) return { label: 'GOLD',   cls: 'tier-gold',   next: 'GOLD까지 ' + (10-cnt) + '회' };
+  if (cnt >= 5)  return { label: 'SILVER', cls: 'tier-silver', next: 'GOLD까지 ' + (10-cnt) + '회' };
+  return         { label: 'BRONZE', cls: 'tier-bronze', next: 'SILVER까지 ' + (5-cnt) + '회' };
+}
+
+function drawQR(token) {
+  var el = document.getElementById('qr-canvas');
+  el.innerHTML = '';
+  var div = document.createElement('div');
+  new QRCode(div, {
+    text: token,
+    width: 200, height: 200,
+    colorDark: '#000000',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+  var img = div.querySelector('img') || div.querySelector('canvas');
+  if (img) {
+    var ctx = el.getContext('2d');
+    if (img.tagName === 'CANVAS') {
+      ctx.drawImage(img, 0, 0);
+    } else {
+      img.onload = function() { ctx.drawImage(img, 0, 0, 200, 200); };
+      if (img.complete) ctx.drawImage(img, 0, 0, 200, 200);
+    }
+  }
+}
+
+function showPass(cust, visitCnt) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+
+  document.getElementById('cust-name').textContent  = cust.name || '온마을 패스';
+  document.getElementById('cust-program').textContent = cust.program || '온마을 가평 체험';
+  document.getElementById('pass-num').textContent   = cust.qrToken || '-';
+  document.getElementById('cust-date').textContent  = cust.date   || '-';
+  document.getElementById('cust-people').textContent = cust.people ? cust.people + '명' : '-';
+  document.getElementById('visit-count').textContent = visitCnt;
+
+  var tier = getTier(visitCnt);
+  var badge = document.getElementById('tier-badge');
+  badge.textContent = tier.label;
+  badge.className = 'tier-badge ' + tier.cls;
+  document.getElementById('visit-next').textContent = tier.next ? '다음 등급까지 ' + tier.next : '🏆 최상위 등급!';
+
+  drawQR(cust.qrToken || token);
+}
+
+function showError() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error').style.display = 'block';
+}
+
+var params = new URLSearchParams(location.search);
+var token  = params.get('pass');
+
+if (!token) {
+  location.replace('https://lovewinsall78.github.io/onmaeul_gapyeong/');
+} else {
+  firebase.auth().signInAnonymously().then(function() {
+    return db.collection('customers').where('qrToken', '==', token).limit(1).get();
+  }).then(function(snap) {
+    if (snap.empty) { showError(); return; }
+    var cust = snap.docs[0].data();
+    return db.collection('visits').where('customerId', '==', cust.id).get()
+      .then(function(vSnap) {
+        showPass(cust, vSnap.size);
+      });
+  }).catch(function() {
+    showError();
+  });
+}
+</script>
+</body>
+</html>
