@@ -197,6 +197,18 @@ body::before {
   z-index: 2;
 }
 
+/* 로고 이미지 */
+.hero-logo-img {
+  width: clamp(240px, 50vw, 420px);
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 0 40px rgba(184,150,90,0.25));
+  animation: fadeUp 1.2s ease 0.5s both;
+}
+
 .hero-divider {
   width: 1px;
   height: 60px;
@@ -1042,8 +1054,9 @@ footer {
   transition: background 0.4s;
 }
 .topnav.scrolled { background: rgba(14,13,11,0.97); }
-.topnav-brand { font-family:'Noto Serif KR',serif; font-size:20px; font-weight:200; color:var(--white); text-decoration:none; line-height:1; }
-.topnav-brand span { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:10px; color:var(--gold); letter-spacing:.35em; display:block; margin-top:3px; }
+.topnav-brand { text-decoration:none; line-height:1; display:flex; align-items:center; }
+.topnav-logo-img { height:36px; width:auto; opacity:0.92; transition:opacity 0.3s; display:block; }
+.topnav-brand:hover .topnav-logo-img { opacity:1; }
 .topnav-links { display:flex; align-items:center; gap:36px; }
 .topnav-link { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:rgba(250,247,242,.4); text-decoration:none; transition:color .3s; }
 .topnav-link:hover { color:var(--gold); }
@@ -1438,6 +1451,8 @@ footer {
   /* ── 히어로 타이포 — 모바일 고정 크기 ── */
   .hero-kr { font-size: 72px !important; }
   .hero-en { font-size: 15px !important; letter-spacing: 0.3em; }
+  .hero-logo-img { width: clamp(200px, 72vw, 300px); }
+  .topnav-logo-img { height: 28px; }
   .hero-tagline { font-size: 14px !important; margin-bottom: 24px; }
   .hero-content { padding: 100px 20px 40px; }
   .hero-eyebrow { margin-bottom: 20px; }
@@ -1670,7 +1685,7 @@ async function saveToFirebase(payload) {
 
 <!-- ── NAV ── -->
 <nav class="topnav" id="topnav">
-  <a href="#" class="topnav-brand">온마을<span>ONMAEUL</span></a>
+  <a href="#" class="topnav-brand"><img src="images/onmaeul_logo.png" alt="온마을 ONMAEUL" class="topnav-logo-img"></a>
   <div class="topnav-links">
     <a href="#experiences" class="topnav-link">체험</a>
     <a href="#visit" class="topnav-link">방문안내</a>
@@ -1696,8 +1711,7 @@ async function saveToFirebase(payload) {
       <span class="aura-spark" style="left:30%;top:40%;width:3px;height:3px;animation-duration:2.5s;animation-delay:1.8s;"></span>
       <span class="aura-spark" style="left:70%;top:75%;width:2px;height:2px;animation-duration:3.9s;animation-delay:0.5s;"></span>
       <span class="aura-spark" style="left:60%;top:25%;width:2px;height:2px;animation-duration:2.2s;animation-delay:2.1s;"></span>
-      <span class="hero-kr">온마을</span>
-      <span class="hero-en">ON<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:2.2em;height:1.2em;vertical-align:middle;margin:0 0.45em;display:inline-block;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>MAEUL</span>
+      <img src="images/onmaeul_logo.png" alt="온마을 ONMAEUL" class="hero-logo-img">
     </div>
     <div class="hero-cta-wrap">
       <a href="#experiences" class="btn-primary">체험 예약하기</a>
