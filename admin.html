@@ -2517,14 +2517,19 @@ async function deleteM01(id) {
 async function showQR(id) {
   showLoading();
   try {
-    const doc=await db.collection('customers').doc(String(id)).get();
-    const c=doc.data(); if(!c) return;
+    // docId 또는 내부 id로 고객 찾기
+    const all = await getAll('customers');
+    let c = all.find(x => (x.__docId || String(x.id)) === String(id));
+    if (!c) { alert('고객 정보를 찾을 수 없습니다.'); return; }
+    const docId = c.__docId || String(c.id);
+
     if(!c.qrToken){
-      const qrToken=genPassToken();
-      await db.collection('customers').doc(String(id)).update({qrToken,passIssuedAt:new Date().toLocaleString('ko-KR')});
-      c.qrToken=qrToken;
+      const qrToken = genPassToken();
+      await db.collection('customers').doc(docId).update({qrToken, passIssuedAt: new Date().toLocaleString('ko-KR')});
+      c.qrToken = qrToken;
     }
-    const qrData=JSON.stringify({t:'sp',c:c.id,k:c.qrToken,n:c.name});
+    // QR 데이터 — 토큰만 담기 (processScan에서 토큰 방식으로 처리)
+    const qrData = c.qrToken;
     const el=document.getElementById('qr-view-content'); el.innerHTML='';
     new QRCode(el,{text:qrData,width:220,height:220,colorDark:'#1B5E20',colorLight:'#fff'});
     let visitCnt=0;
