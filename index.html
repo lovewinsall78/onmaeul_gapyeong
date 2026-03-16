@@ -1080,6 +1080,43 @@ footer {
 /* ══════════════════════════════
    TOP NAV
 ══════════════════════════════ */
+/* ── 날씨 바 ── */
+.weather-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1100;
+  background: rgba(10,9,8,0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(184,150,90,0.12);
+  height: 36px;
+  display: none;   /* 위치 허용 후 JS에서 표시 */
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 300;
+  color: rgba(250,247,242,0.65);
+  letter-spacing: 1.5px;
+  transition: opacity 0.5s;
+}
+.weather-bar.visible { display: flex; }
+.weather-icon { font-size: 14px; line-height: 1; }
+.weather-temp { color: var(--gold); font-weight: 400; }
+.weather-loc  { color: rgba(250,247,242,0.35); font-size: 10px; }
+.weather-divider { color: rgba(184,150,90,0.3); }
+
+/* 날씨 바가 있을 때 topnav와 hero 밀어내기 */
+body.has-weather .topnav { top: 36px; }
+body.has-weather .hero-content { padding-top: 136px; }
+
+@media (max-width: 600px) {
+  .weather-bar { font-size: 10px; gap: 12px; height: 32px; letter-spacing: 1px; }
+  body.has-weather .topnav { top: 32px; }
+  body.has-weather .hero-content { padding-top: 120px; }
+}
+
 .topnav {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -1722,6 +1759,20 @@ async function saveToFirebase(payload) {
 <body>
 
 <!-- ── NAV ── -->
+<!-- ── 날씨 바 (위치 기반, 허용 시 표시) ── -->
+<div class="weather-bar" id="weather-bar">
+  <span class="weather-icon" id="w-icon">☁</span>
+  <span id="w-desc">날씨 로딩 중</span>
+  <span class="weather-divider">·</span>
+  <span class="weather-temp" id="w-temp">--°C</span>
+  <span class="weather-divider">·</span>
+  <span>습도 <span id="w-hum">--%</span></span>
+  <span class="weather-divider">·</span>
+  <span>바람 <span id="w-wind">-- m/s</span></span>
+  <span class="weather-divider">·</span>
+  <span class="weather-loc" id="w-loc">위치 확인 중</span>
+</div>
+
 <nav class="topnav" id="topnav">
   <a href="#" class="topnav-brand"><img src="images/onmaeul_logo.png" alt="온마을 ONMAEUL" class="topnav-logo-img"></a>
   <div class="topnav-links">
@@ -2574,6 +2625,96 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   };
 })();
 </script>
+<!-- ── 날씨 정보 (Geolocation + Open-Meteo) ── -->
+<script>
+(function() {
+  // ?pass= 링크로 접속한 경우 날씨 바 불필요
+  if (new URLSearchParams(location.search).get('pass')) return;
+
+  /* WMO 날씨 코드 → 한글 설명 + 이모지 */
+  function parseWMO(code) {
+    if (code === 0)               return { icon: '☀️', desc: '맑음' };
+    if (code <= 2)                return { icon: '⛅', desc: '구름 조금' };
+    if (code === 3)               return { icon: '☁️', desc: '흐림' };
+    if (code <= 49)               return { icon: '🌫', desc: '안개' };
+    if (code <= 55)               return { icon: '🌦', desc: '이슬비' };
+    if (code <= 65)               return { icon: '🌧', desc: '비' };
+    if (code <= 75)               return { icon: '❄️', desc: '눈' };
+    if (code <= 84)               return { icon: '🌨', desc: '눈 · 비' };
+    if (code <= 99)               return { icon: '⛈', desc: '뇌우' };
+    return { icon: '🌡', desc: '날씨 정보' };
+  }
+
+  /* 역지오코딩: 위도·경도 → 지역명 (Big Data Public API) */
+  function getLocationName(lat, lon, cb) {
+    // nominatim (OpenStreetMap) 무료 역지오코딩
+    var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat='
+      + lat + '&lon=' + lon + '&accept-language=ko';
+    fetch(url, { headers: { 'Accept-Language': 'ko' } })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        var addr = d.address || {};
+        // 시/군/구 단위로 표시
+        var name = addr.city || addr.county || addr.town || addr.suburb
+                || addr.state || '현재 위치';
+        cb(name);
+      })
+      .catch(function() { cb('현재 위치'); });
+  }
+
+  /* Open-Meteo API로 날씨 조회 */
+  function fetchWeather(lat, lon) {
+    var url = 'https://api.open-meteo.com/v1/forecast'
+      + '?latitude=' + lat
+      + '&longitude=' + lon
+      + '&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code'
+      + '&wind_speed_unit=ms'
+      + '&timezone=Asia%2FSeoul';
+
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var c = data.current;
+        var wmo = parseWMO(c.weather_code);
+
+        document.getElementById('w-icon').textContent  = wmo.icon;
+        document.getElementById('w-desc').textContent  = wmo.desc;
+        document.getElementById('w-temp').textContent  = Math.round(c.temperature_2m) + '°C';
+        document.getElementById('w-hum').textContent   = c.relative_humidity_2m + '%';
+        document.getElementById('w-wind').textContent  = c.wind_speed_10m.toFixed(1) + ' m/s';
+
+        // 역지오코딩으로 지역명 가져오기
+        getLocationName(lat, lon, function(name) {
+          document.getElementById('w-loc').textContent = name;
+        });
+
+        // 날씨 바 표시
+        var bar = document.getElementById('weather-bar');
+        bar.classList.add('visible');
+        document.body.classList.add('has-weather');
+      })
+      .catch(function(e) {
+        console.warn('날씨 로딩 실패:', e);
+        // 실패 시 조용히 숨김 — 사용자 경험 방해 안 함
+      });
+  }
+
+  /* 위치 권한 요청 */
+  if (!navigator.geolocation) return;
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      fetchWeather(pos.coords.latitude, pos.coords.longitude);
+    },
+    function(err) {
+      // 거부 또는 오류 시 날씨 바 표시 안 함 — 조용히 처리
+      console.log('위치 정보 없음:', err.message);
+    },
+    { timeout: 8000, maximumAge: 300000 }  // 5분 캐시
+  );
+})();
+</script>
+
 <!-- 온패스: ?pass= 파라미터 → admin?pass= 리다이렉트 -->
 <script>
 (function() {
