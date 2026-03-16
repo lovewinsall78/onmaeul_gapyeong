@@ -4814,6 +4814,33 @@ async function processScan(decodedText){
     const discountRate=Number(coopOpt.dataset.discount)||0;
     // 방문 정보 임시 저장
     const visits=await getAll('visits');
+
+    // ── 중복 체크: 오늘 같은 고객이 같은 가맹점에서 이미 기록됐는지 확인 ──
+    const todayStr = new Date().toISOString().split('T')[0];
+    const isDuplicate = visits.some(v =>
+      v.customerId === cust.id &&
+      String(v.coopId) === String(coopId) &&
+      v.visitDate === todayStr &&
+      v.visitType !== 'sms_sent'   // 문자 자동 기록 제외
+    );
+    if(isDuplicate){
+      const dupVisit = visits.find(v =>
+        v.customerId === cust.id &&
+        String(v.coopId) === String(coopId) &&
+        v.visitDate === todayStr &&
+        v.visitType !== 'sms_sent'
+      );
+      alert(
+        '⚠️ 중복 방문 기록\n\n' +
+        cust.name + '님은 오늘 ' + coopName + '에서\n' +
+        '이미 방문 기록이 있습니다.\n\n' +
+        '기록 시각: ' + (dupVisit.visitTime || '-') + '\n' +
+        '중복 기록은 저장되지 않습니다.'
+      );
+      startQRScanner();
+      return;
+    }
+
     const visitCnt=visits.filter(v=>v.customerId===cust.id).length;
     const tier=getPassTier(visitCnt);
     _pendingVisit={
@@ -4852,6 +4879,23 @@ async function recordVisit(){
   if(!_pendingVisit){ closeModal('visit-confirm-modal'); return; }
   showLoading('방문 기록 중...');
   try{
+    // ── 최종 중복 확인 (모달 열린 사이 다른 기기에서 기록됐을 경우 대비) ──
+    const latestVisits = await getAll('visits');
+    invalidateCache('visits'); // 캐시 무효화 후 재조회
+    const freshVisits = await getAll('visits');
+    const finalDup = freshVisits.some(v =>
+      v.customerId === _pendingVisit.customerId &&
+      String(v.coopId) === String(_pendingVisit.coopId) &&
+      v.visitDate === _pendingVisit.visitDate &&
+      v.visitType !== 'sms_sent'
+    );
+    if(finalDup){
+      _pendingVisit = null;
+      closeModal('visit-confirm-modal');
+      hideLoading();
+      alert('⚠️ 이미 다른 기기에서 방문이 기록되었습니다.\n중복 저장이 취소되었습니다.');
+      return;
+    }
     const session=getSession();
     const data={
       ..._pendingVisit,
