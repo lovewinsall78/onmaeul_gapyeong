@@ -565,6 +565,24 @@ body.role-viewer .perm-write { display: none !important; }
 
     <!-- ========== DASHBOARD ========== -->
     <div id="module-dashboard" class="module active">
+      <!-- 대시보드 QR 스캔 버튼 -->
+      <button onclick="openScanMode()" style="
+        display:flex; align-items:center; justify-content:center; gap:12px;
+        width:100%; padding:18px; margin-bottom:16px;
+        background:var(--primary); color:#fff;
+        border:none; border-radius:12px;
+        font-size:16px; font-weight:700; font-family:inherit;
+        cursor:pointer; letter-spacing:0.03em;
+        box-shadow:0 4px 16px rgba(27,94,32,0.25);
+        transition:background 0.15s, transform 0.1s;
+      "
+      onmouseover="this.style.background='#2E7D32'"
+      onmouseout="this.style.background='var(--primary)'"
+      onmousedown="this.style.transform='scale(0.98)'"
+      onmouseup="this.style.transform='scale(1)'">
+        <span style="font-size:22px;">📷</span>
+        <span>QR 스캔 — 스테이패스 확인</span>
+      </button>
       <div class="stats-grid" id="dash-stats"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;" class="dash-grid">
         <div class="card">
