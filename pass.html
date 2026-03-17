@@ -56,16 +56,27 @@ html, body { min-height: 100vh; background: #0a1a0a; font-family: 'Noto Sans KR'
   transition: background 0.15s, transform 0.1s;
 }
 .btn-kakao:active { transform: scale(0.97); background: #F5DA00; }
-.btn-save {
+.btn-kakao-send {
   display: flex; align-items: center; justify-content: center; gap: 10px;
-  width: 100%; padding: 15px;
-  background: transparent; color: #81c784;
-  border: 1.5px solid #2a4a2a; border-radius: 14px;
-  font-size: 14px; font-weight: 700; font-family: inherit;
-  cursor: pointer;
+  width: 100%; padding: 18px;
+  background: #FEE500; color: #191600;
+  border: none; border-radius: 14px;
+  font-size: 15px; font-weight: 700; font-family: inherit;
+  cursor: pointer; text-decoration: none;
   transition: background 0.15s, transform 0.1s;
+  box-shadow: 0 4px 16px rgba(254,229,0,0.2);
 }
-.btn-save:active { transform: scale(0.97); background: #0a1f0a; }
+.btn-kakao-send:active { transform: scale(0.97); background: #F5DA00; }
+/* 전송 완료 토스트 */
+.pass-toast {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: #1b3a1b; border: 1px solid #2a5a2a;
+  color: #81c784; font-size: 13px; font-weight: 600;
+  padding: 12px 24px; border-radius: 24px;
+  opacity: 0; transition: all 0.3s; pointer-events: none;
+  white-space: nowrap; z-index: 9999;
+}
+.pass-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .footer-note { margin-top: 16px; font-size: 11px; color: #2a4a2a; text-align: center; line-height: 2; }
 </style>
 </head>
@@ -107,26 +118,18 @@ html, body { min-height: 100vh; background: #0a1a0a; font-family: 'Noto Sans KR'
   </div>
   <!-- 액션 버튼 -->
   <div class="action-btns" id="action-btns" style="display:none;">
-    <!-- 카카오 친구 추가 -->
-    <a class="btn-kakao"
-       href="http://pf.kakao.com/_FVxjZX/friend"
-       target="_blank" rel="noopener">
+    <!-- 카카오 나에게 전송 (단일 버튼) -->
+    <button class="btn-kakao-send" onclick="sendToMyKakao()">
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
         <ellipse cx="11" cy="10" rx="9" ry="8" fill="#3B1E08" opacity="0.9"/>
         <path d="M11 4.5C7.41 4.5 4.5 6.74 4.5 9.5c0 1.78 1.1 3.34 2.75 4.27l-.7 2.57 3.07-2.02c.44.07.9.11 1.38.11 3.59 0 6.5-2.24 6.5-5s-2.91-4.93-6.5-4.93z" fill="#FEE500"/>
       </svg>
-      온마을 가평 친구 추가
-    </a>
-    <!-- 패스 이미지 저장 -->
-    <button class="btn-save" id="btn-save-img" onclick="savePassImage()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#81c784" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-      온마을 가평 패스 저장
+      카카오톡 · 나에게 전송
     </button>
   </div>
+
+  <!-- 전송 완료 토스트 -->
+  <div class="pass-toast" id="pass-toast">✓ 카카오톡 나에게 전송 완료</div>
 
   <div class="footer-note">업주에게 이 화면을 보여주세요 · 카카오채널 @온마을가평</div>
 </div>
@@ -192,103 +195,71 @@ function showPass(cust, visitCnt) {
 }
 
 /* ── 패스 이미지 저장 ── */
-function savePassImage() {
-  var btn = document.getElementById('btn-save-img');
-  var SAVE_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#81c784" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> 온마을 가평 패스 저장';
-  btn.textContent = '저장 중...';
-  btn.disabled = true;
+function sendToMyKakao() {
+  var passUrl  = location.href;   // 현재 패스 URL 그대로
+  var custName = document.getElementById('cust-name').textContent || '온마을 패스';
+  var msg      = '온마을 스테이패스\n' + custName + '님의 패스를 저장해두세요 :)\n' + passUrl;
 
-  /* ── QR canvas → img 변환 (html2canvas tainted canvas 문제 해결) ──
-     html2canvas는 타 라이브러리가 그린 canvas를 캡처하지 못함.
-     캡처 전에 canvas를 dataURL img로 교체하고, 캡처 후 원복. */
-  function convertQRtoImg() {
-    var box = document.getElementById('qr-box');
-    var cv  = box.querySelector('canvas');
-    if (!cv) return null;  // 이미 img 형식이면 문제 없음
-    try {
-      var dataUrl = cv.toDataURL('image/png');
-      var img = document.createElement('img');
-      img.src = dataUrl;
-      img.style.width  = '200px';
-      img.style.height = '200px';
-      img.style.display = 'block';
-      box.replaceChild(img, cv);
-      return { box: box, img: img, cv: cv };  // 복원용 참조 반환
-    } catch(e) { return null; }
-  }
-
-  function restoreQR(backup) {
-    if (!backup) return;
-    try { backup.box.replaceChild(backup.cv, backup.img); } catch(e) {}
-  }
-
-  function doCapture() {
-    var custName = document.getElementById('cust-name').textContent || '온마을패스';
-    var card = document.querySelector('.wrap');
-    var btns = document.getElementById('action-btns');
-
-    // 1) QR canvas → img 변환
-    var qrBackup = convertQRtoImg();
-
-    // 2) 버튼 숨기기
-    btns.style.visibility = 'hidden';
-
-    html2canvas(card, {
-      backgroundColor: '#0a1a0a',
-      scale: 2,
-      useCORS: true,
-      allowTaint: false,  // false 여야 CORS 오류 없이 안전하게 캡처
-      imageTimeout: 3000
-    }).then(function(canvas) {
-      // 3) 복원
-      restoreQR(qrBackup);
-      btns.style.visibility = 'visible';
-      // 4) 저장
-      var link = document.createElement('a');
-      link.download = custName + '_온마을패스.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      btn.innerHTML = SAVE_ICON;
-      btn.disabled = false;
-    }).catch(function() {
-      restoreQR(qrBackup);
-      btns.style.visibility = 'visible';
-      // html2canvas 실패 → QR 단독 저장으로 폴백
-      saveQROnly(custName);
-      btn.innerHTML = SAVE_ICON;
-      btn.disabled = false;
+  /* ① Web Share API — iOS Safari / Android Chrome 기본 공유 시트
+        사용자가 카카오톡 → 나에게 보내기 선택 가능 */
+  if (navigator.share) {
+    navigator.share({
+      title: '온마을 스테이패스',
+      text:  custName + '님의 온마을 패스',
+      url:   passUrl
+    }).then(function() {
+      showPassToast('카카오톡으로 저장해 두세요 :)');
+    }).catch(function(e) {
+      if (e.name !== 'AbortError') fallbackCopy(msg, passUrl);
     });
+    return;
   }
 
-  function saveQROnly(custName) {
-    /* QR만 단독으로 저장 (폴백) */
-    var custName = custName || document.getElementById('cust-name').textContent || '온마을패스';
-    var qrBox = document.getElementById('qr-box');
-    var cv = qrBox.querySelector('canvas');
-    var im = qrBox.querySelector('img');
-    var link = document.createElement('a');
-    link.download = custName + '_QR.png';
-    if (cv)      { link.href = cv.toDataURL('image/png'); link.click(); }
-    else if (im) { link.href = im.src; link.click(); }
-    else { alert('QR 이미지를 저장할 수 없습니다.\n스크린샷을 이용해 주세요.'); }
-    btn.innerHTML = SAVE_ICON;
-    btn.disabled = false;
-  }
+  /* ② Web Share 미지원 → 클립보드 복사 후 카카오톡 열기 */
+  fallbackCopy(msg, passUrl);
+}
 
-  // html2canvas 로드
-  if (!window.html2canvas) {
-    var s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-    s.onload = function() { doCapture(); };
-    s.onerror = function() {
-      saveQROnly();
-      btn.innerHTML = SAVE_ICON;
-      btn.disabled = false;
-    };
-    document.head.appendChild(s);
-  } else {
-    doCapture();
+function fallbackCopy(msg, passUrl) {
+  /* 클립보드에 패스 링크 복사 */
+  var copied = false;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(passUrl).then(function() {
+      showPassToast('링크 복사 완료 · 카카오톡 나에게 보내기에 붙여넣기 하세요');
+      openKakao();
+    }).catch(function() { legacyCopy(passUrl); });
+    return;
   }
+  legacyCopy(passUrl);
+}
+
+function legacyCopy(passUrl) {
+  var ta = document.createElement('textarea');
+  ta.value = passUrl;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); showPassToast('링크 복사 완료 · 카카오톡 나에게 보내기에 붙여넣기 하세요'); }
+  catch(e) { showPassToast('링크를 길게 눌러 복사한 후 카카오톡 나에게 보내기로 전송하세요'); }
+  document.body.removeChild(ta);
+  openKakao();
+}
+
+function openKakao() {
+  /* 카카오톡 앱 딥링크 → 나에게 보내기 화면으로 직접 이동 */
+  setTimeout(function() {
+    var isIOS     = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    var isAndroid = /android/i.test(navigator.userAgent);
+    if (isIOS)     { location.href = 'kakaotalk://'; }
+    else if (isAndroid) { location.href = 'intent://talk/more#Intent;scheme=kakaolink;package=com.kakao.talk;end'; }
+    else { window.open('https://talk.kakao.com', '_blank'); }
+  }, 300);
+}
+
+function showPassToast(msg) {
+  var t = document.getElementById('pass-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 3500);
 }
 
 function showError() {
