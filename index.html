@@ -1080,43 +1080,6 @@ footer {
 /* ══════════════════════════════
    TOP NAV
 ══════════════════════════════ */
-/* ── 날씨 바 ── */
-.weather-bar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 1100;
-  background: rgba(10,9,8,0.82);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(184,150,90,0.12);
-  height: 36px;
-  display: none;   /* 위치 허용 후 JS에서 표시 */
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
-  font-weight: 300;
-  color: rgba(250,247,242,0.65);
-  letter-spacing: 1.5px;
-  transition: opacity 0.5s;
-}
-.weather-bar.visible { display: flex; }
-.weather-icon { font-size: 14px; line-height: 1; }
-.weather-temp { color: var(--gold); font-weight: 400; }
-.weather-loc  { color: rgba(250,247,242,0.35); font-size: 10px; }
-.weather-divider { color: rgba(184,150,90,0.3); }
-
-/* 날씨 바가 있을 때 topnav와 hero 밀어내기 */
-body.has-weather .topnav { top: 36px; }
-body.has-weather .hero-content { padding-top: 136px; }
-
-@media (max-width: 600px) {
-  .weather-bar { font-size: 10px; gap: 12px; height: 32px; letter-spacing: 1px; }
-  body.has-weather .topnav { top: 32px; }
-  body.has-weather .hero-content { padding-top: 120px; }
-}
-
 .topnav {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -1759,27 +1722,13 @@ async function saveToFirebase(payload) {
 <body>
 
 <!-- ── NAV ── -->
-<!-- ── 날씨 바 (위치 기반, 허용 시 표시) ── -->
-<div class="weather-bar" id="weather-bar">
-  <span class="weather-icon" id="w-icon">☁</span>
-  <span id="w-desc">날씨 로딩 중</span>
-  <span class="weather-divider">·</span>
-  <span class="weather-temp" id="w-temp">--°C</span>
-  <span class="weather-divider">·</span>
-  <span>습도 <span id="w-hum">--%</span></span>
-  <span class="weather-divider">·</span>
-  <span>바람 <span id="w-wind">-- m/s</span></span>
-  <span class="weather-divider">·</span>
-  <span class="weather-loc" id="w-loc">위치 확인 중</span>
-</div>
-
 <nav class="topnav" id="topnav">
   <a href="#" class="topnav-brand"><img src="images/onmaeul_logo.png" alt="온마을 ONMAEUL" class="topnav-logo-img"></a>
   <div class="topnav-links">
-    <a href="#experiences" class="topnav-link">체험</a>
-    <a href="#visit" class="topnav-link">방문안내</a>
-    <a href="#access" class="topnav-link">오시는 길</a>
-    <a href="#experiences" class="topnav-reserve">예약하기</a>
+    <a href="#experiences" class="topnav-link">체험 <span style="font-size:9px;opacity:0.55;letter-spacing:1px;">EXP</span></a>
+    <a href="#visit" class="topnav-link">방문 <span style="font-size:9px;opacity:0.55;letter-spacing:1px;">VISIT</span></a>
+    <a href="#access" class="topnav-link">오시는 길 <span style="font-size:9px;opacity:0.55;letter-spacing:1px;">ACCESS</span></a>
+    <a href="#experiences" class="topnav-reserve">Reserve</a>
   </div>
 </nav>
 
@@ -1797,6 +1746,7 @@ async function saveToFirebase(payload) {
     <p class="hero-eyebrow">경기도 가평 · 수목원로 311</p>
 
     <p class="hero-tagline">마을 전체가 <em>당신의 호텔</em>입니다</p>
+    <p style="font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:3px;color:rgba(250,247,242,0.32);margin-bottom:4px;opacity:0;animation:fadeUp 1s ease 0.7s forwards;">The whole village is your hotel</p>
 
     <div class="hero-wordmark" id="hero-wordmark">
       <span class="aura-spark" style="left:15%;top:70%;width:3px;height:3px;animation-duration:3.2s;animation-delay:0.3s;"></span>
@@ -1808,8 +1758,8 @@ async function saveToFirebase(payload) {
       <img src="images/onmaeul_logo.png" alt="온마을 ONMAEUL" class="hero-logo-img">
     </div>
     <div class="hero-cta-wrap">
-      <a href="#experiences" class="btn-primary">체험 예약하기</a>
-      <a href="#experiences" class="btn-ghost">체험 둘러보기</a>
+      <a href="#experiences" class="btn-primary">체험 예약하기 <span style="font-size:9px;opacity:0.7;display:block;letter-spacing:2px;margin-top:3px;">BOOK EXPERIENCE</span></a>
+      <a href="#experiences" class="btn-ghost">체험 둘러보기 <span style="font-size:9px;opacity:0.6;display:block;letter-spacing:2px;margin-top:3px;">EXPLORE</span></a>
     </div>
   </div>
 
@@ -1825,8 +1775,9 @@ async function saveToFirebase(payload) {
   <div class="exp-inner">
     <div class="exp-header reveal">
       <span class="sec-eyebrow">EXPER<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:2em;height:1.1em;vertical-align:middle;margin:0 0.5em;display:inline-block;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.6)" stroke-width="1.5"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.85)"/></svg>IENCES</span>
-      <h2 class="sec-title">온마을의 경험</h2>
-      <p class="sec-sub">축령산 힐링숲에서 직접 수확한 잣으로 만들고, 느끼고, 함께하는 마을의 시간.</p>
+      <h2 class="sec-title">온마을의 경험 <em style="font-size:clamp(16px,2vw,22px);letter-spacing:2px;">Experiences</em></h2>
+      <p class="sec-sub">축령산 힐링숲에서 직접 수확한 잣으로 만들고, 느끼고, 함께하는 마을의 시간.<br>
+      <span style="font-size:12px;color:rgba(107,102,96,0.7);letter-spacing:1px;">Make · Feel · Be together — in the village of Gapyeong</span></p>
     </div>
     <div class="exp-grid">
 
@@ -1864,19 +1815,19 @@ async function saveToFirebase(payload) {
             <div class="drawer-fields">
               <div class="drawer-field-row">
                 <div class="drawer-field">
-                  <label>예약자 이름 *</label>
+                  <label>예약자 이름 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Name</span></label>
                   <input class="form-input d-name" placeholder="홍길동">
                   <div class="form-error d-err-name">이름을 입력하세요</div>
                 </div>
                 <div class="drawer-field">
-                  <label>연락처 *</label>
+                  <label>연락처 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Phone</span></label>
                   <input class="form-input d-phone" placeholder="010-0000-0000">
                   <div class="form-error d-err-phone">연락처를 입력하세요</div>
                 </div>
               </div>
               <div class="drawer-field-row">
                 <div class="drawer-field">
-                  <label>희망 날짜 *</label>
+                  <label>희망 날짜 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Date</span></label>
                   <div class="date-input-wrap">
                     <span class="date-icon-btn" onclick="var inp=this.nextElementSibling;try{if(inp.showPicker)inp.showPicker();else inp.focus();}catch(e){inp.focus();}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -1886,7 +1837,7 @@ async function saveToFirebase(payload) {
                   <div class="form-error d-err-date">날짜를 선택하세요</div>
                 </div>
                 <div class="drawer-field">
-                  <label>인원 *</label>
+                  <label>인원 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Guests</span></label>
                   <select class="form-select d-people">
                     <option value="">선택</option>
                     <option value="1">1명</option>
@@ -1899,7 +1850,7 @@ async function saveToFirebase(payload) {
                 </div>
               </div>
               <div class="drawer-field" style="grid-column:1/-1">
-                <label>메모 (선택)</label>
+                <label>메모 (선택) <span style='font-size:10px;opacity:0.5;font-weight:400;'>Note (optional)</span></label>
                 <input class="form-input d-memo" placeholder="알레르기, 특이사항 등">
               </div>
             </div>
@@ -1914,7 +1865,7 @@ async function saveToFirebase(payload) {
             <div style="text-align:center;padding:8px 0 20px;">
               <div class="booking-done-icon">✓</div>
               <h3 class="booking-done-title">신청이 접수되었습니다</h3>
-              <p class="booking-done-sub">담당자 확인 후 카카오톡으로 연락드립니다.<br>카카오톡 채널 <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" style="color:var(--gold);text-decoration:none;">온마을가평</a>으로 문의하셔도 됩니다.</p>
+              <p class="booking-done-sub">담당자 확인 후 카카오톡으로 연락드립니다.<br>카카오톡 채널 <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" style="color:var(--gold);text-decoration:none;">온마을가평</a>으로 문의하셔도 됩니다.<br><span style="font-size:0.78rem;color:rgba(107,102,96,0.7);letter-spacing:0.5px;">Booking received. We'll contact you via KakaoTalk.</span></p>
             </div>
             <div class="booking-done-info d-done-info"></div>
             <!-- 카카오 친구추가 유도 -->
@@ -1923,7 +1874,8 @@ async function saveToFirebase(payload) {
               <p class="kakao-cta-msg">
                 카카오 채널 친구추가 하시면<br>
                 <strong>체험 10% 할인쿠폰</strong>을 바로 받으실 수 있어요 🎁<br>
-                <small style="color:var(--fog);font-size:0.78rem;">담당자 알림도 카톡으로 바로 받으세요</small>
+                <small style="color:var(--fog);font-size:0.78rem;">담당자 알림도 카톡으로 바로 받으세요</small><br>
+                <small style="color:rgba(107,102,96,0.6);font-size:0.74rem;letter-spacing:0.5px;">Get 10% off coupon · Receive updates via KakaoTalk</small>
               </p>
               <a href="https://pf.kakao.com/_FVxjZX/friend" target="_blank" class="btn-kakao-add">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="9" rx="9" ry="8" fill="#3A1D1D"/><path d="M10 4C6.57 4 3.8 6.24 3.8 9c0 1.72 1.1 3.23 2.76 4.11l-.68 2.5c-.05.2.16.37.34.25l2.94-1.96c.31.05.64.07.84.07 3.43 0 6.2-2.24 6.2-5S13.43 4 10 4z" fill="#FEE500"/></svg>
@@ -1971,19 +1923,19 @@ async function saveToFirebase(payload) {
             <div class="drawer-fields">
               <div class="drawer-field-row">
                 <div class="drawer-field">
-                  <label>예약자 이름 *</label>
+                  <label>예약자 이름 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Name</span></label>
                   <input class="form-input d-name" placeholder="홍길동">
                   <div class="form-error d-err-name">이름을 입력하세요</div>
                 </div>
                 <div class="drawer-field">
-                  <label>연락처 *</label>
+                  <label>연락처 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Phone</span></label>
                   <input class="form-input d-phone" placeholder="010-0000-0000">
                   <div class="form-error d-err-phone">연락처를 입력하세요</div>
                 </div>
               </div>
               <div class="drawer-field-row">
                 <div class="drawer-field">
-                  <label>희망 날짜 *</label>
+                  <label>희망 날짜 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Date</span></label>
                   <div class="date-input-wrap">
                     <span class="date-icon-btn" onclick="var inp=this.nextElementSibling;try{if(inp.showPicker)inp.showPicker();else inp.focus();}catch(e){inp.focus();}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -1993,7 +1945,7 @@ async function saveToFirebase(payload) {
                   <div class="form-error d-err-date">날짜를 선택하세요</div>
                 </div>
                 <div class="drawer-field">
-                  <label>인원 *</label>
+                  <label>인원 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Guests</span></label>
                   <select class="form-select d-people">
                     <option value="">선택</option>
                     <option value="1">1명</option>
@@ -2006,7 +1958,7 @@ async function saveToFirebase(payload) {
                 </div>
               </div>
               <div class="drawer-field" style="grid-column:1/-1">
-                <label>메모 (선택)</label>
+                <label>메모 (선택) <span style='font-size:10px;opacity:0.5;font-weight:400;'>Note (optional)</span></label>
                 <input class="form-input d-memo" placeholder="알레르기, 특이사항 등">
               </div>
             </div>
@@ -2021,7 +1973,7 @@ async function saveToFirebase(payload) {
             <div style="text-align:center;padding:8px 0 20px;">
               <div class="booking-done-icon">✓</div>
               <h3 class="booking-done-title">신청이 접수되었습니다</h3>
-              <p class="booking-done-sub">담당자 확인 후 카카오톡으로 연락드립니다.<br>카카오톡 채널 <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" style="color:var(--gold);text-decoration:none;">온마을가평</a>으로 문의하셔도 됩니다.</p>
+              <p class="booking-done-sub">담당자 확인 후 카카오톡으로 연락드립니다.<br>카카오톡 채널 <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" style="color:var(--gold);text-decoration:none;">온마을가평</a>으로 문의하셔도 됩니다.<br><span style="font-size:0.78rem;color:rgba(107,102,96,0.7);letter-spacing:0.5px;">Booking received. We'll contact you via KakaoTalk.</span></p>
             </div>
             <div class="booking-done-info d-done-info"></div>
             <!-- 카카오 친구추가 유도 -->
@@ -2030,7 +1982,8 @@ async function saveToFirebase(payload) {
               <p class="kakao-cta-msg">
                 카카오 채널 친구추가 하시면<br>
                 <strong>체험 10% 할인쿠폰</strong>을 바로 받으실 수 있어요 🎁<br>
-                <small style="color:var(--fog);font-size:0.78rem;">담당자 알림도 카톡으로 바로 받으세요</small>
+                <small style="color:var(--fog);font-size:0.78rem;">담당자 알림도 카톡으로 바로 받으세요</small><br>
+                <small style="color:rgba(107,102,96,0.6);font-size:0.74rem;letter-spacing:0.5px;">Get 10% off coupon · Receive updates via KakaoTalk</small>
               </p>
               <a href="https://pf.kakao.com/_FVxjZX/friend" target="_blank" class="btn-kakao-add">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="9" rx="9" ry="8" fill="#3A1D1D"/><path d="M10 4C6.57 4 3.8 6.24 3.8 9c0 1.72 1.1 3.23 2.76 4.11l-.68 2.5c-.05.2.16.37.34.25l2.94-1.96c.31.05.64.07.84.07 3.43 0 6.2-2.24 6.2-5S13.43 4 10 4z" fill="#FEE500"/></svg>
@@ -2078,19 +2031,19 @@ async function saveToFirebase(payload) {
             <div class="drawer-fields">
               <div class="drawer-field-row">
                 <div class="drawer-field">
-                  <label>예약자 이름 *</label>
+                  <label>예약자 이름 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Name</span></label>
                   <input class="form-input d-name" placeholder="홍길동">
                   <div class="form-error d-err-name">이름을 입력하세요</div>
                 </div>
                 <div class="drawer-field">
-                  <label>연락처 *</label>
+                  <label>연락처 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Phone</span></label>
                   <input class="form-input d-phone" placeholder="010-0000-0000">
                   <div class="form-error d-err-phone">연락처를 입력하세요</div>
                 </div>
               </div>
               <div class="drawer-field-row">
                 <div class="drawer-field">
-                  <label>희망 날짜 *</label>
+                  <label>희망 날짜 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Date</span></label>
                   <div class="date-input-wrap">
                     <span class="date-icon-btn" onclick="var inp=this.nextElementSibling;try{if(inp.showPicker)inp.showPicker();else inp.focus();}catch(e){inp.focus();}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -2100,7 +2053,7 @@ async function saveToFirebase(payload) {
                   <div class="form-error d-err-date">날짜를 선택하세요</div>
                 </div>
                 <div class="drawer-field">
-                  <label>인원 *</label>
+                  <label>인원 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Guests</span></label>
                   <select class="form-select d-people">
                     <option value="">선택</option>
                     <option value="1">1명</option>
@@ -2113,7 +2066,7 @@ async function saveToFirebase(payload) {
                 </div>
               </div>
               <div class="drawer-field" style="grid-column:1/-1">
-                <label>메모 (선택)</label>
+                <label>메모 (선택) <span style='font-size:10px;opacity:0.5;font-weight:400;'>Note (optional)</span></label>
                 <input class="form-input d-memo" placeholder="알레르기, 특이사항 등">
               </div>
             </div>
@@ -2128,7 +2081,7 @@ async function saveToFirebase(payload) {
             <div style="text-align:center;padding:8px 0 20px;">
               <div class="booking-done-icon">✓</div>
               <h3 class="booking-done-title">신청이 접수되었습니다</h3>
-              <p class="booking-done-sub">담당자 확인 후 카카오톡으로 연락드립니다.<br>카카오톡 채널 <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" style="color:var(--gold);text-decoration:none;">온마을가평</a>으로 문의하셔도 됩니다.</p>
+              <p class="booking-done-sub">담당자 확인 후 카카오톡으로 연락드립니다.<br>카카오톡 채널 <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" style="color:var(--gold);text-decoration:none;">온마을가평</a>으로 문의하셔도 됩니다.<br><span style="font-size:0.78rem;color:rgba(107,102,96,0.7);letter-spacing:0.5px;">Booking received. We'll contact you via KakaoTalk.</span></p>
             </div>
             <div class="booking-done-info d-done-info"></div>
             <!-- 카카오 친구추가 유도 -->
@@ -2137,7 +2090,8 @@ async function saveToFirebase(payload) {
               <p class="kakao-cta-msg">
                 카카오 채널 친구추가 하시면<br>
                 <strong>체험 10% 할인쿠폰</strong>을 바로 받으실 수 있어요 🎁<br>
-                <small style="color:var(--fog);font-size:0.78rem;">담당자 알림도 카톡으로 바로 받으세요</small>
+                <small style="color:var(--fog);font-size:0.78rem;">담당자 알림도 카톡으로 바로 받으세요</small><br>
+                <small style="color:rgba(107,102,96,0.6);font-size:0.74rem;letter-spacing:0.5px;">Get 10% off coupon · Receive updates via KakaoTalk</small>
               </p>
               <a href="https://pf.kakao.com/_FVxjZX/friend" target="_blank" class="btn-kakao-add">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="9" rx="9" ry="8" fill="#3A1D1D"/><path d="M10 4C6.57 4 3.8 6.24 3.8 9c0 1.72 1.1 3.23 2.76 4.11l-.68 2.5c-.05.2.16.37.34.25l2.94-1.96c.31.05.64.07.84.07 3.43 0 6.2-2.24 6.2-5S13.43 4 10 4z" fill="#FEE500"/></svg>
@@ -2185,19 +2139,19 @@ async function saveToFirebase(payload) {
             <div class="drawer-fields">
               <div class="drawer-field-row">
                 <div class="drawer-field">
-                  <label>예약자 이름 *</label>
+                  <label>예약자 이름 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Name</span></label>
                   <input class="form-input d-name" placeholder="홍길동">
                   <div class="form-error d-err-name">이름을 입력하세요</div>
                 </div>
                 <div class="drawer-field">
-                  <label>연락처 *</label>
+                  <label>연락처 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Phone</span></label>
                   <input class="form-input d-phone" placeholder="010-0000-0000">
                   <div class="form-error d-err-phone">연락처를 입력하세요</div>
                 </div>
               </div>
               <div class="drawer-field-row">
                 <div class="drawer-field">
-                  <label>희망 날짜 *</label>
+                  <label>희망 날짜 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Date</span></label>
                   <div class="date-input-wrap">
                     <span class="date-icon-btn" onclick="var inp=this.nextElementSibling;try{if(inp.showPicker)inp.showPicker();else inp.focus();}catch(e){inp.focus();}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -2207,7 +2161,7 @@ async function saveToFirebase(payload) {
                   <div class="form-error d-err-date">날짜를 선택하세요</div>
                 </div>
                 <div class="drawer-field">
-                  <label>인원 *</label>
+                  <label>인원 * <span style='font-size:10px;opacity:0.5;font-weight:400;'>Guests</span></label>
                   <select class="form-select d-people">
                     <option value="">선택</option>
                     <option value="1">1명</option>
@@ -2220,7 +2174,7 @@ async function saveToFirebase(payload) {
                 </div>
               </div>
               <div class="drawer-field" style="grid-column:1/-1">
-                <label>메모 (선택)</label>
+                <label>메모 (선택) <span style='font-size:10px;opacity:0.5;font-weight:400;'>Note (optional)</span></label>
                 <input class="form-input d-memo" placeholder="알레르기, 특이사항 등">
               </div>
             </div>
@@ -2235,7 +2189,7 @@ async function saveToFirebase(payload) {
             <div style="text-align:center;padding:8px 0 20px;">
               <div class="booking-done-icon">✓</div>
               <h3 class="booking-done-title">신청이 접수되었습니다</h3>
-              <p class="booking-done-sub">담당자 확인 후 카카오톡으로 연락드립니다.<br>카카오톡 채널 <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" style="color:var(--gold);text-decoration:none;">온마을가평</a>으로 문의하셔도 됩니다.</p>
+              <p class="booking-done-sub">담당자 확인 후 카카오톡으로 연락드립니다.<br>카카오톡 채널 <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" style="color:var(--gold);text-decoration:none;">온마을가평</a>으로 문의하셔도 됩니다.<br><span style="font-size:0.78rem;color:rgba(107,102,96,0.7);letter-spacing:0.5px;">Booking received. We'll contact you via KakaoTalk.</span></p>
             </div>
             <div class="booking-done-info d-done-info"></div>
             <!-- 카카오 친구추가 유도 -->
@@ -2244,7 +2198,8 @@ async function saveToFirebase(payload) {
               <p class="kakao-cta-msg">
                 카카오 채널 친구추가 하시면<br>
                 <strong>체험 10% 할인쿠폰</strong>을 바로 받으실 수 있어요 🎁<br>
-                <small style="color:var(--fog);font-size:0.78rem;">담당자 알림도 카톡으로 바로 받으세요</small>
+                <small style="color:var(--fog);font-size:0.78rem;">담당자 알림도 카톡으로 바로 받으세요</small><br>
+                <small style="color:rgba(107,102,96,0.6);font-size:0.74rem;letter-spacing:0.5px;">Get 10% off coupon · Receive updates via KakaoTalk</small>
               </p>
               <a href="https://pf.kakao.com/_FVxjZX/friend" target="_blank" class="btn-kakao-add">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="9" rx="9" ry="8" fill="#3A1D1D"/><path d="M10 4C6.57 4 3.8 6.24 3.8 9c0 1.72 1.1 3.23 2.76 4.11l-.68 2.5c-.05.2.16.37.34.25l2.94-1.96c.31.05.64.07.84.07 3.43 0 6.2-2.24 6.2-5S13.43 4 10 4z" fill="#FEE500"/></svg>
@@ -2282,30 +2237,30 @@ async function saveToFirebase(payload) {
       <span class="sec-eyebrow">오시는<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>길</span>
       <h2 class="sec-title" style="color:var(--white)">Access</h2>
       <div class="access-item">
-        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>주소</span>
-        <div class="access-value">경기도 가평군 상면 수목원로 311<br>아침고요상생연대협동조합</div>
+        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>주소 <span style="font-size:9px;opacity:0.5;letter-spacing:1px;">ADDRESS</span></span>
+        <div class="access-value">경기도 가평군 상면 수목원로 311<br>아침고요상생연대협동조합<br><span style="font-size:12px;opacity:0.55;">311 Sumoknwon-ro, Sangmyeon, Gapyeong-gun, Gyeonggi-do</span></div>
       </div>
       <div class="access-item">
-        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>자가용</span>
-        <div class="access-value">내비게이션 검색: 수목원로 311<br>또는 아침고요수목원 방면</div>
+        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>자가용 <span style="font-size:9px;opacity:0.5;letter-spacing:1px;">BY CAR</span></span>
+        <div class="access-value">내비게이션 검색: 수목원로 311<br>또는 아침고요수목원 방면<br><span style="font-size:12px;opacity:0.55;">Search "Sumoknwon-ro 311" on navigation apps</span></div>
       </div>
       <div class="access-item">
-        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>대중교통</span>
-        <div class="access-value">가평역 하차 → 버스 또는 택시 이용<br>(약 15~20분 소요)</div>
+        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>대중교통 <span style="font-size:9px;opacity:0.5;letter-spacing:1px;">BY TRANSIT</span></span>
+        <div class="access-value">가평역 하차 → 버스 또는 택시 이용<br>(약 15~20분 소요)<br><span style="font-size:12px;opacity:0.55;">Gapyeong Station → Bus or Taxi (15–20 min)</span></div>
       </div>
     </div>
     <div class="reveal reveal-d2">
       <div class="access-item">
-        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>운영 시간</span>
-        <div class="access-value">카페: 매일 10:00 – 18:00<br>다이닝: 예약제 운영<br>스테이: 체크인 15:00 / 체크아웃 11:00</div>
+        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>운영 시간 <span style="font-size:9px;opacity:0.5;letter-spacing:1px;">HOURS</span></span>
+        <div class="access-value">카페: 매일 10:00 – 18:00<br>다이닝: 예약제 운영<br>스테이: 체크인 15:00 / 체크아웃 11:00<br><span style="font-size:12px;opacity:0.55;">Café daily 10–18 · Dining by reservation · Check-in 15:00 / Check-out 11:00</span></div>
       </div>
       <div class="access-item">
-        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>문의</span>
-        <div class="access-value">카카오톡 채널: 온마을가평<br>인스타그램: @onmaeul_311</div>
+        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>문의 <span style="font-size:9px;opacity:0.5;letter-spacing:1px;">CONTACT</span></span>
+        <div class="access-value">카카오톡 채널: 온마을가평<br>인스타그램: @onmaeul_311<br><span style="font-size:12px;opacity:0.55;">KakaoTalk: @온마을가평 · Instagram: @onmaeul_311</span></div>
       </div>
       <div class="access-item">
-        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>주의사항</span>
-        <div class="access-value">모든 체험은 사전 예약제로 운영됩니다.<br>당일 예약은 담당자 확인 후 가능합니다.</div>
+        <span class="access-label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:1.8em;height:1em;vertical-align:middle;margin:0 0.4em;display:inline-block;opacity:0.7;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.5)" stroke-width="1"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.75)"/></svg>주의사항 <span style="font-size:9px;opacity:0.5;letter-spacing:1px;">NOTICE</span></span>
+        <div class="access-value">모든 체험은 사전 예약제로 운영됩니다.<br>당일 예약은 담당자 확인 후 가능합니다.<br><span style="font-size:12px;opacity:0.55;">All experiences require prior reservation. Same-day booking available upon confirmation.</span></div>
       </div>
     </div>
   </div>
@@ -2403,6 +2358,7 @@ async function saveToFirebase(payload) {
   <div class="footer-info">
     아침고요상생연대협동조합<br>
     경기도 가평군 상면 수목원로 311<br>
+    <span style="font-size:11px;opacity:0.5;">311 Sumoknwon-ro, Gapyeong, Korea</span><br>
     @onmaeul_311 · @jacaranda311
   </div>
 </footer>
@@ -2625,96 +2581,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   };
 })();
 </script>
-<!-- ── 날씨 정보 (Geolocation + Open-Meteo) ── -->
-<script>
-(function() {
-  // ?pass= 링크로 접속한 경우 날씨 바 불필요
-  if (new URLSearchParams(location.search).get('pass')) return;
-
-  /* WMO 날씨 코드 → 한글 설명 + 이모지 */
-  function parseWMO(code) {
-    if (code === 0)               return { icon: '☀️', desc: '맑음' };
-    if (code <= 2)                return { icon: '⛅', desc: '구름 조금' };
-    if (code === 3)               return { icon: '☁️', desc: '흐림' };
-    if (code <= 49)               return { icon: '🌫', desc: '안개' };
-    if (code <= 55)               return { icon: '🌦', desc: '이슬비' };
-    if (code <= 65)               return { icon: '🌧', desc: '비' };
-    if (code <= 75)               return { icon: '❄️', desc: '눈' };
-    if (code <= 84)               return { icon: '🌨', desc: '눈 · 비' };
-    if (code <= 99)               return { icon: '⛈', desc: '뇌우' };
-    return { icon: '🌡', desc: '날씨 정보' };
-  }
-
-  /* 역지오코딩: 위도·경도 → 지역명 (Big Data Public API) */
-  function getLocationName(lat, lon, cb) {
-    // nominatim (OpenStreetMap) 무료 역지오코딩
-    var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat='
-      + lat + '&lon=' + lon + '&accept-language=ko';
-    fetch(url, { headers: { 'Accept-Language': 'ko' } })
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        var addr = d.address || {};
-        // 시/군/구 단위로 표시
-        var name = addr.city || addr.county || addr.town || addr.suburb
-                || addr.state || '현재 위치';
-        cb(name);
-      })
-      .catch(function() { cb('현재 위치'); });
-  }
-
-  /* Open-Meteo API로 날씨 조회 */
-  function fetchWeather(lat, lon) {
-    var url = 'https://api.open-meteo.com/v1/forecast'
-      + '?latitude=' + lat
-      + '&longitude=' + lon
-      + '&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code'
-      + '&wind_speed_unit=ms'
-      + '&timezone=Asia%2FSeoul';
-
-    fetch(url)
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        var c = data.current;
-        var wmo = parseWMO(c.weather_code);
-
-        document.getElementById('w-icon').textContent  = wmo.icon;
-        document.getElementById('w-desc').textContent  = wmo.desc;
-        document.getElementById('w-temp').textContent  = Math.round(c.temperature_2m) + '°C';
-        document.getElementById('w-hum').textContent   = c.relative_humidity_2m + '%';
-        document.getElementById('w-wind').textContent  = c.wind_speed_10m.toFixed(1) + ' m/s';
-
-        // 역지오코딩으로 지역명 가져오기
-        getLocationName(lat, lon, function(name) {
-          document.getElementById('w-loc').textContent = name;
-        });
-
-        // 날씨 바 표시
-        var bar = document.getElementById('weather-bar');
-        bar.classList.add('visible');
-        document.body.classList.add('has-weather');
-      })
-      .catch(function(e) {
-        console.warn('날씨 로딩 실패:', e);
-        // 실패 시 조용히 숨김 — 사용자 경험 방해 안 함
-      });
-  }
-
-  /* 위치 권한 요청 */
-  if (!navigator.geolocation) return;
-
-  navigator.geolocation.getCurrentPosition(
-    function(pos) {
-      fetchWeather(pos.coords.latitude, pos.coords.longitude);
-    },
-    function(err) {
-      // 거부 또는 오류 시 날씨 바 표시 안 함 — 조용히 처리
-      console.log('위치 정보 없음:', err.message);
-    },
-    { timeout: 8000, maximumAge: 300000 }  // 5분 캐시
-  );
-})();
-</script>
-
 <!-- 온패스: ?pass= 파라미터 → admin?pass= 리다이렉트 -->
 <script>
 (function() {

@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>온마을 시스템 대시보드</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e1117;
+  --bg2: #161b27;
+  --bg3: #1e2535;
+  --border: #2a3347;
+  --border2: #3a4a63;
+  --text: #e8edf5;
+  --text2: #8a96aa;
+  --text3: #4a5568;
+  --green: #22c55e;
+  --green-bg: #0d2218;
+  --green-border: #166534;
+  --amber: #f59e0b;
+  --amber-bg: #1c1507;
+  --amber-border: #78350f;
+  --red: #ef4444;
+  --red-bg: #1a0a0a;
+  --red-border: #7f1d1d;
+  --blue: #60a5fa;
+  --blue-bg: #0a1628;
+  --blue-border: #1e40af;
+  --accent: #3b82f6;
+  --gold: #f59e0b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.updated {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: calc(100vh - 53px);
+}
+.sidebar {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 20px 0;
+}
+.nav-section {
+  padding: 0 16px;
+  margin-bottom: 4px;
+}
+.nav-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 12px 8px 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text2);
+  font-size: 13px;
+  transition: all 0.15s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.nav-icon { width: 16px; text-align: center; font-size: 13px; }
+.nav-badge {
+  margin-left: auto;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--bg3);
+  color: var(--text3);
+  font-family: 'JetBrains Mono', monospace;
+}
+.nav-badge.ok { background: var(--green-bg); color: var(--green); }
+.nav-badge.warn { background: var(--amber-bg); color: var(--amber); }
+.nav-badge.err { background: var(--red-bg); color: var(--red); }
+.main {
+  padding: 28px;
+  overflow-y: auto;
+}
+.section { display: none; }
+.section.active { display: block; }
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+.page-sub {
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 24px;
+}
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+.grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.card-value {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -1px;
+}
+.card-value.green { color: var(--green); }
+.card-value.amber { color: var(--amber); }
+.card-value.red { color: var(--red); }
+.card-value.blue { color: var(--blue); }
+.card-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+.scenario-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+.scenario-card:hover { border-color: var(--border2); }
+.sc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-green { background: var(--green); }
+.dot-amber { background: var(--amber); }
+.dot-red { background: var(--red); }
+.dot-gray { background: var(--text3); }
+.sc-name { font-size: 14px; font-weight: 500; flex: 1; }
+.badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+.badge-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.badge-amber { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.badge-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.badge-gray { background: var(--bg3); color: var(--text3); border: 1px solid var(--border); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.sc-meta { font-size: 12px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+.sc-flow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.chip {
+  font-size: 11px;
+  padding: 3px 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text2);
+}
+.arrow-chip { color: var(--text3); font-size: 12px; }
+.ask-btn {
+  margin-top: 12px;
+  padding: 7px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--text2);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Noto Sans KR', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ask-btn:hover { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue); }
+.ask-btn.copied { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+.ask-btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 500;
+}
+.ask-btn-primary:hover { background: #2563eb; border-color: #2563eb; color: #fff; }
+.todo-list { }
+.todo-item {
+  display: flex;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  align-items: flex-start;
+}
+.todo-num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--blue-bg);
+  border: 1px solid var(--blue-border);
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.todo-content { flex: 1; }
+.todo-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.todo-desc { font-size: 12px; color: var(--text2); margin-bottom: 10px; line-height: 1.6; }
+.priority-tag {
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-weight: 500;
+  margin-left: 8px;
+}
+.priority-high { background: var(--red-bg); color: var(--red); }
+.priority-mid { background: var(--amber-bg); color: var(--amber); }
+.priority-low { background: var(--bg3); color: var(--text3); }
+.file-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 10px;
+}
+.file-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.file-icon {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  background: var(--blue-bg);
+  border: 1px solid var(--blue-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+.file-name { font-size: 13px; font-weight: 500; }
+.file-path { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+.file-meta { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.file-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text3);
+}
+.status-ok { color: var(--green); }
+.status-warn { color: var(--amber); }
+.info-box {
+  background: var(--blue-bg);
+  border: 1px solid var(--blue-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--blue);
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+.warn-box {
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--amber);
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+.section-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 20px 0 10px;
+}
+.claude-box {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+}
+.claude-box-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.quick-asks { display: flex; flex-direction: column; gap: 8px; }
+.quick-ask-btn {
+  padding: 10px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Noto Sans KR', sans-serif;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.quick-ask-btn:hover { border-color: var(--accent); color: var(--blue); background: var(--blue-bg); }
+.quick-ask-btn.copied { border-color: var(--green-border); color: var(--green); background: var(--green-bg); }
+.copy-hint { font-size: 11px; color: var(--text3); }
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--green-bg);
+  border: 1px solid var(--green-border);
+  color: var(--green);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.25s;
+  z-index: 9999;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+
+<!-- Claude 대화창 바로가기 배너 -->
+<div style="
+  background: linear-gradient(90deg, #1a1f3a 0%, #0e1117 100%);
+  border-bottom: 1px solid rgba(99,102,241,0.3);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  gap: 16px;
+">
+  <span style="font-size:12px;color:rgba(200,205,220,0.5);letter-spacing:0.5px;">
+    Claude와 대화하며 온마을 시스템을 관리하세요
+  </span>
+  <a href="https://claude.ai" target="_blank" rel="noopener"
+     style="
+       display: flex; align-items: center; gap: 8px;
+       background: rgba(99,102,241,0.15);
+       border: 1px solid rgba(99,102,241,0.4);
+       border-radius: 8px;
+       padding: 7px 16px;
+       color: #a5b4fc;
+       text-decoration: none;
+       font-size: 13px;
+       font-weight: 600;
+       font-family: inherit;
+       letter-spacing: 0.3px;
+       white-space: nowrap;
+       transition: background 0.15s, border-color 0.15s;
+     "
+     onmouseover="this.style.background='rgba(99,102,241,0.28)';this.style.borderColor='rgba(99,102,241,0.7)'"
+     onmouseout="this.style.background='rgba(99,102,241,0.15)';this.style.borderColor='rgba(99,102,241,0.4)'"
+  >
+    <!-- Claude 로고 (간략 SVG) -->
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" fill="rgba(99,102,241,0.3)" stroke="rgba(165,180,252,0.6)" stroke-width="1.2"/>
+      <path d="M8 12c0-2.21 1.79-4 4-4s4 1.79 4 4-1.79 4-4 4" stroke="#a5b4fc" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="12" cy="12" r="1.5" fill="#a5b4fc"/>
+    </svg>
+    Claude 대화창 열기 ↗
+  </a>
+</div>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    온마을 가평 · 시스템 대시보드
+  </div>
+  <div class="updated mono">2026-03-14 기준</div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">메뉴</div>
+      <button class="nav-item active" onclick="showSection('overview')">
+        <span class="nav-icon">◈</span> 전체 현황
+      </button>
+      <button class="nav-item" onclick="showSection('make')">
+        <span class="nav-icon">⚙</span> Make 시나리오
+        <span class="nav-badge warn">4활성</span>
+      </button>
+      <button class="nav-item" onclick="showSection('files')">
+        <span class="nav-icon">◻</span> 파일 현황
+        <span class="nav-badge ok">OK</span>
+      </button>
+      <button class="nav-item" onclick="showSection('firebase')">
+        <span class="nav-icon">◈</span> Firebase
+        <span class="nav-badge ok">연결됨</span>
+      </button>
+      <button class="nav-item" onclick="showSection('todo')">
+        <span class="nav-icon">✦</span> 손볼 곳
+        <span class="nav-badge err">6건</span>
+      </button>
+      <button class="nav-item" onclick="showSection('claude')">
+        <span class="nav-icon">✧</span> Claude에 묻기
+      </button>
+      <button class="nav-item" onclick="showSection('deploy')">
+        <span class="nav-icon">🚀</span> 배포 체크리스트
+      </button>
+      <button class="nav-item" onclick="showSection('config')">
+        <span class="nav-icon">⚙️</span> 시스템 설정
+      </button>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">바로가기</div>
+      <button class="nav-item" onclick="copyPrompt('온마을 시스템 전체 현황을 점검해줘')">
+        <span class="nav-icon">↻</span> 전체 점검 요청
+      </button>
+      <button class="nav-item" onclick="copyPrompt('Make 시나리오 오류 건수 확인해줘')">
+        <span class="nav-icon">!</span> Make 오류 확인
+      </button>
+      <button class="nav-item" onclick="copyPrompt('JS 문법 검사 실행해줘')">
+        <span class="nav-icon">✓</span> JS 문법 검사
+      </button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- 전체 현황 -->
+    <div class="section active" id="section-overview">
+      <div class="page-title">전체 현황</div>
+
+      <!-- 빠른 테스트 링크 -->
+      <div class="section-label">빠른 테스트 링크</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+        <a href="https://lovewinsall78.github.io/onmaeul_gapyeong/" target="_blank"
+           style="display:flex;align-items:center;gap:8px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--blue);text-decoration:none;font-size:13px;">
+          🌐 랜딩페이지 열기
+        </a>
+        <a href="https://lovewinsall78.github.io/onmaeul_gapyeong/admin" target="_blank"
+           style="display:flex;align-items:center;gap:8px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--green);text-decoration:none;font-size:13px;">
+          🛠 관리시스템 열기
+        </a>
+        <a href="https://lovewinsall78.github.io/onmaeul_gapyeong/pass.html?pass=QR-1773545585001" target="_blank"
+           style="display:flex;align-items:center;gap:8px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--gold);text-decoration:none;font-size:13px;">
+          📱 패스 화면 테스트
+        </a>
+        <button onclick="copyPrompt('관리시스템과 랜딩페이지 최신 파일 GitHub 배포 체크리스트 확인해줘')"
+           style="display:flex;align-items:center;gap:8px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:13px;font-family:inherit;cursor:pointer;">
+          ✅ 배포 체크 요청
+        </button>
+      </div>
+      <div class="page-sub">온마을 가평 · 마을호텔 플랫폼 시스템 상태</div>
+
+      <div class="grid4">
+        <div class="card">
+          <div class="card-title">활성 시나리오</div>
+          <div class="card-value green">4</div>
+          <div class="card-sub">Make 자동화</div>
+        </div>
+        <div class="card">
+          <div class="card-title">코드 파일</div>
+          <div class="card-value blue">2</div>
+          <div class="card-sub">JS 문법 OK</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Make Ops 사용</div>
+          <div class="card-value amber">75%</div>
+          <div class="card-sub">월 한도 대비</div>
+        </div>
+        <div class="card">
+          <div class="card-title">손볼 곳</div>
+          <div class="card-value red">6</div>
+          <div class="card-sub">우선순위 항목</div>
+        </div>
+      </div>
+
+      <div class="section-label">알림 흐름</div>
+      <div class="scenario-card">
+        <div class="sc-header">
+          <div class="status-dot dot-green"></div>
+          <div class="sc-name">QR 랜딩페이지 예약 → 관리자 문자 알림</div>
+          <div class="badge badge-green">작동 중</div>
+        </div>
+        <div class="sc-flow">
+          <span class="chip">손님 예약</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">Firebase 저장</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">Make 웹훅</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">솔라피 문자</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">01073734996</span>
+        </div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="sc-header">
+          <div class="status-dot dot-green"></div>
+          <div class="sc-name">관리시스템 문자/카톡 발송</div>
+          <div class="badge badge-green">작동 중</div>
+        </div>
+        <div class="sc-flow">
+          <span class="chip">📱 문자 버튼</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">Make Router</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">SMS / 카톡</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">고객</span>
+        </div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="sc-header">
+          <div class="status-dot dot-amber"></div>
+          <div class="sc-name">Gmail 예약 알림</div>
+          <div class="badge badge-gray">비활성</div>
+        </div>
+        <div class="sc-meta">노션 DB → Gmail · 필드 매핑 문제로 임시 중단</div>
+        <div class="sc-flow">
+          <span class="chip">노션 예약DB</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">Make</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">Gmail</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">pgeunw@gmail.com</span>
+        </div>
+        <button class="ask-btn" onclick="copyPrompt('노션 예약DB 컬럼명 확인해서 Gmail 알림 필드 매핑 수정해줘')">
+          ✦ Claude에게 수정 요청 복사
+        </button>
+      </div>
+
+      <div class="claude-box">
+        <div class="claude-box-title">✧ Claude에 빠르게 묻기</div>
+        <div class="quick-asks">
+          <button class="quick-ask-btn" onclick="copyPrompt('온마을 Make 시나리오 전체 상태 확인해줘')">
+            Make 시나리오 전체 상태 확인
+            <span class="copy-hint">클릭 → 복사</span>
+          </button>
+          <button class="quick-ask-btn" onclick="copyPrompt('온마을 관리시스템 JS 문법 검사 실행해줘')">
+            JS 문법 검사 실행
+            <span class="copy-hint">클릭 → 복사</span>
+          </button>
+          <button class="quick-ask-btn" onclick="copyPrompt('온마을 시스템 스냅샷 체크리스트 전체 실행해줘')">
+            전체 스냅샷 점검
+            <span class="copy-hint">클릭 → 복사</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Make 시나리오 -->
+    <div class="section" id="section-make">
+      <div class="page-title">Make 시나리오</div>
+      <div class="page-sub">총 6개 · 4개 활성 · 2개 비활성</div>
+
+      <div class="warn-box">
+        ⚠ Integration Notion Google Sheets 시나리오가 월 operations의 97%를 소진했습니다.
+        15분 간격으로 조정 완료. 플랜 업그레이드 검토 필요.
+      </div>
+
+      <div class="section-label">활성 시나리오</div>
+
+      <div class="scenario-card">
+        <div class="sc-header">
+          <div class="status-dot dot-green"></div>
+          <div class="sc-name">QR 예약 접수 → Notion 저장</div>
+          <div class="badge badge-green">활성</div>
+        </div>
+        <div class="sc-meta">즉시 실행 · 총 64회 · 오류 8건 (과거 누적, 현재 정상)</div>
+        <div class="sc-flow">
+          <span class="chip">웹훅 수신</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">Notion DB 저장</span>
+        </div>
+        <div class="sc-meta" style="margin-top:6px;">ID: 4352939 · 웹훅: p8te4g4z...</div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="sc-header">
+          <div class="status-dot dot-green"></div>
+          <div class="sc-name">온마을 SMS/카톡 발송</div>
+          <div class="badge badge-green">활성</div>
+        </div>
+        <div class="sc-meta">즉시 실행 · 총 7회 · 오류 1건</div>
+        <div class="sc-flow">
+          <span class="chip">웹훅 수신</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">Router</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">SMS (솔라피)</span>
+          <span class="arrow-chip">/</span>
+          <span class="chip">카톡 (솔라피)</span>
+        </div>
+        <div class="sc-meta" style="margin-top:6px;">ID: 4389571 · 웹훅: jlp7zyy...</div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="sc-header">
+          <div class="status-dot dot-green"></div>
+          <div class="sc-name">온마을 신규고객 관리자 알림</div>
+          <div class="badge badge-green">활성</div>
+        </div>
+        <div class="sc-meta">즉시 실행 · QR랜딩페이지 유입 시만 발송</div>
+        <div class="sc-flow">
+          <span class="chip">웹훅 수신</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">솔라피 SMS</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">01073734996</span>
+        </div>
+        <div class="sc-meta" style="margin-top:6px;">ID: 4390120 · 웹훅: mpdncqty...</div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="sc-header">
+          <div class="status-dot dot-amber"></div>
+          <div class="sc-name">Integration Notion, Google Sheets</div>
+          <div class="badge badge-amber">활성 · 주의</div>
+        </div>
+        <div class="sc-meta">15분마다 · 총 7,269회 · 오류 11건 · Ops 97% 소진</div>
+        <div class="sc-flow">
+          <span class="chip">Notion DB</span>
+          <span class="arrow-chip">→</span>
+          <span class="chip">Google Sheets</span>
+          <span class="arrow-chip">+</span>
+          <span class="chip">솔라피</span>
+        </div>
+        <div class="sc-meta" style="margin-top:6px;">ID: 4104399 · 간격 1분→15분 조정 완료</div>
+        <button class="ask-btn" onclick="copyPrompt('Integration Notion Google Sheets 시나리오 오류 11건 분석해줘')">
+          오류 분석 요청 복사
+        </button>
+      </div>
+
+      <div class="section-label">비활성 시나리오</div>
+
+      <div class="scenario-card">
+        <div class="sc-header">
+          <div class="status-dot dot-gray"></div>
+          <div class="sc-name">예약DB 새 예약 → 내 메일로 알림</div>
+          <div class="badge badge-gray">비활성</div>
+        </div>
+        <div class="sc-meta">Gmail 알림 · 필드 매핑 문제로 임시 중단</div>
+        <button class="ask-btn" onclick="copyPrompt('예약DB 새 예약 Gmail 알림 시나리오 필드 매핑 수정해줘')">
+          필드 매핑 수정 요청 복사
+        </button>
+      </div>
+
+      <div class="scenario-card">
+        <div class="sc-header">
+          <div class="status-dot dot-gray"></div>
+          <div class="sc-name">Notion 예약 → Firebase 자동 등록</div>
+          <div class="badge badge-gray">비활성 · 미사용</div>
+        </div>
+        <div class="sc-meta">실행 0회 · 필요 시 활성화</div>
+      </div>
+    </div>
+
+    <!-- 파일 현황 -->
+    <div class="section" id="section-files">
+      <div class="page-title">파일 현황</div>
+      <div class="page-sub">온마을 시스템 코드 파일 상태</div>
+
+      <div class="info-box">
+        ✓ 두 파일 모두 JS 문법 검사 통과. 현재 PC 로컬에서만 실행 가능 — 웹 배포 후 어디서든 접근 가능.
+      </div>
+
+      <div class="file-card">
+        <div class="file-header">
+          <div class="file-icon">⚙</div>
+          <div>
+            <div class="file-name">관리시스템</div>
+            <div class="file-path">온마을관리시스템_Firebase.html</div>
+          </div>
+          <div class="badge badge-green" style="margin-left:auto;">JS OK</div>
+        </div>
+        <div class="sc-meta">5,024줄 · Firebase + 솔라피 + Make 연동</div>
+        <div class="file-meta">
+          <span class="file-tag">REGION_CONFIG</span>
+          <span class="file-tag">Firebase</span>
+          <span class="file-tag">솔라피 SMS</span>
+          <span class="file-tag">고객 관리</span>
+          <span class="file-tag">QR 스테이패스</span>
+          <span class="file-tag">중복 경고</span>
+        </div>
+        <div style="margin-top:12px;">
+          <div class="sc-meta" style="margin-bottom:6px;">핵심 설정 (REGION_CONFIG)</div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);line-height:1.8;">
+            regionName: "가평"<br>
+            adminPhone: "01073734996"<br>
+            makeWebhookSMS: "jlp7zyy..."<br>
+            makeWebhookAlert: "mpdncqty..."<br>
+            kakaoChannelUrl: "pf.kakao.com/_FVxjZX"
+          </div>
+        </div>
+        <button class="ask-btn" style="margin-top:10px;" onclick="copyPrompt('온마을 관리시스템 JS 문법 검사하고 스냅샷 체크리스트 실행해줘')">
+          검증 체크 요청 복사
+        </button>
+      </div>
+
+      <div class="file-card">
+        <div class="file-header">
+          <div class="file-icon">◈</div>
+          <div>
+            <div class="file-name">랜딩페이지</div>
+            <div class="file-path">index.html</div>
+          </div>
+          <div class="badge badge-green" style="margin-left:auto;">JS OK</div>
+        </div>
+        <div class="sc-meta">2,463줄 · QR 예약 + Firebase 저장 + 관리자 알림</div>
+        <div class="file-meta">
+          <span class="file-tag">체험 예약 폼</span>
+          <span class="file-tag">Firebase 저장</span>
+          <span class="file-tag">관리자 알림 웹훅</span>
+          <span class="file-tag">카카오 채널</span>
+          <span class="file-tag">완료 화면</span>
+        </div>
+        <div class="warn-box" style="margin-top:12px;margin-bottom:0;">
+          ⚠ 현재 PC 로컬 파일로만 운영 중. 핸드폰에서 접근하려면 웹 배포 필요.
+        </div>
+        <button class="ask-btn" style="margin-top:10px;" onclick="copyPrompt('온마을 랜딩페이지 Netlify로 배포하는 방법 단계별로 알려줘')">
+          웹 배포 방법 요청 복사
+        </button>
+      </div>
+
+      <!-- 날씨 정보 ON/OFF 카드 -->
+      <div class="file-card" style="border-color: var(--blue-border);">
+        <div class="file-header">
+          <div class="file-icon" style="color:var(--blue);">🌤</div>
+          <div>
+            <div class="file-name">랜딩페이지 날씨 정보</div>
+            <div class="file-path">index.html · 위치 기반 날씨 바</div>
+          </div>
+          <!-- 토글 상태 표시 -->
+          <div id="weather-status-badge" class="badge badge-red" style="margin-left:auto;">OFF</div>
+        </div>
+        <div class="sc-meta" style="margin-bottom:14px;">
+          히어로 화면 최상단에 현재 위치의 기온·날씨·습도·풍속을 표시합니다.<br>
+          방문자가 위치 권한을 허용할 때만 나타나며, 거부 시 조용히 숨겨집니다.
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button id="btn-weather-on" onclick="setWeather(true)"
+            style="flex:1;padding:11px;border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);border-radius:8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">
+            🌤 날씨 ON
+          </button>
+          <button id="btn-weather-off" onclick="setWeather(false)"
+            style="flex:1;padding:11px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);border-radius:8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">
+            🌑 날씨 OFF
+          </button>
+        </div>
+        <div id="weather-action-msg" style="margin-top:10px;font-size:12px;color:var(--text3);min-height:18px;"></div>
+      </div>
+    </div>
+
+    <!-- Firebase -->
+    <div class="section" id="section-firebase">
+      <div class="page-title">Firebase</div>
+      <div class="page-sub">onmaeul-2e7ea 프로젝트</div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">프로젝트 ID</div>
+          <div class="mono" style="font-size:13px;color:var(--blue);margin-top:6px;">onmaeul-2e7ea</div>
+          <div class="card-sub">서울 리전</div>
+        </div>
+        <div class="card">
+          <div class="card-title">인증 방식</div>
+          <div class="card-value green" style="font-size:18px;">익명 인증</div>
+          <div class="card-sub">Anonymous Auth ON</div>
+        </div>
+      </div>
+
+      <div class="section-label">Firestore 컬렉션</div>
+
+      <div class="scenario-card">
+        <div class="sc-header">
+          <div class="status-dot dot-green"></div>
+          <div class="sc-name">customers</div>
+          <div class="badge badge-green">사용 중</div>
+        </div>
+        <div class="sc-meta">고객 정보 · QR ID / 직접 등록 ID 혼합 저장</div>
+        <div class="file-meta" style="margin-top:8px;">
+          <span class="file-tag">name</span>
+          <span class="file-tag">phone</span>
+          <span class="file-tag">source</span>
+          <span class="file-tag">program</span>
+          <span class="file-tag">qrToken</span>
+          <span class="file-tag">customerId</span>
+          <span class="file-tag">sns</span>
+        </div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="sc-header">
+          <div class="status-dot dot-green"></div>
+          <div class="sc-name">config</div>
+          <div class="badge badge-green">사용 중</div>
+        </div>
+        <div class="sc-meta">체험 프로그램 목록 등 시스템 설정값</div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="sc-header">
+          <div class="status-dot dot-green"></div>
+          <div class="sc-name">_counters</div>
+          <div class="badge badge-green">사용 중</div>
+        </div>
+        <div class="sc-meta">고객 ID 자동 증가 카운터 (C0001, C0002...)</div>
+      </div>
+
+      <div class="info-box" style="margin-top:16px;">
+        Security Rules: allow read, write: if request.auth != null;<br>
+        익명 로그인 완료 후 Firestore 저장 · CDN 차단 환경은 데모모드 자동 전환
+      </div>
+
+      <button class="ask-btn ask-btn-primary" onclick="copyPrompt('Firebase Firestore 보안 규칙 현재 상태 확인해줘')">
+        Firebase 보안 규칙 점검 요청 복사
+      </button>
+    </div>
+
+    <!-- 손볼 곳 -->
+    <div class="section" id="section-todo">
+      <div class="page-title">손볼 곳</div>
+      <div class="page-sub">우선순위 순 · 클릭하면 Claude 요청 문구가 복사됩니다</div>
+
+      <div class="todo-list">
+        <div class="todo-item" style="opacity:0.5;">
+          <div class="todo-num" style="background:var(--green-bg);color:var(--green);border-color:var(--green-border);">✓</div>
+          <div class="todo-content">
+            <div class="todo-title">웹 배포 <span class="priority-tag" style="background:var(--green-bg);color:var(--green);border-color:var(--green-border);">완료</span></div>
+            <div class="todo-desc">GitHub Pages 배포 완료.<br>lovewinsall78.github.io/onmaeul_gapyeong 에서 운영 중.</div>
+          </div>
+        </div>
+
+        <div class="todo-item">
+          <div class="todo-num">1</div>
+          <div class="todo-content">
+            <div class="todo-title">GitHub 구버전 업로드 방지 <span class="priority-tag priority-high">반복 주의</span></div>
+            <div class="todo-desc">매 세션마다 수정 후 GitHub에 최신 파일을 올려야 반영됨.<br>
+              특히 <b>admin 파일은 확장자 없이</b> 올려야 하고, 배포 후 강제 새로고침 필수.<br>
+              → 배포 체크리스트 탭 참고</div>
+            <button class="ask-btn" onclick="copyPrompt('마지막 수정 파일 다시 만들어줘')">
+              최신 파일 재출력 요청 복사
+            </button>
+          </div>
+        </div>
+
+        <div class="todo-item">
+          <div class="todo-num">2</div>
+          <div class="todo-content">
+            <div class="todo-title">Gmail 알림 필드 매핑 수정 <span class="priority-tag priority-high">높음</span></div>
+            <div class="todo-desc">노션 예약DB → Gmail 알림이 오지만 내용(예약자, 연락처 등)이 비어있음.<br>노션 DB 실제 컬럼명 확인 후 Make 시나리오 매핑 수정 필요.</div>
+            <button class="ask-btn" onclick="copyPrompt('노션 예약DB 컬럼명을 직접 확인하고 Gmail 알림 Make 시나리오 필드 매핑을 수정해줘')">
+              수정 요청 복사
+            </button>
+          </div>
+        </div>
+
+        <div class="todo-item">
+          <div class="todo-num">3</div>
+          <div class="todo-content">
+            <div class="todo-title">카카오 알림톡 연동 <span class="priority-tag priority-mid">보통</span></div>
+            <div class="todo-desc">관리시스템 카톡 버튼이 있지만 솔라피에 카카오 채널이 미등록 상태.<br>솔라피 콘솔에서 온마을가평 채널 등록 + 알림톡 템플릿 승인 필요.</div>
+            <button class="ask-btn" onclick="copyPrompt('솔라피에 카카오 채널 등록하고 알림톡 연동하는 방법과 절차를 알려줘')">
+              연동 방법 요청 복사
+            </button>
+          </div>
+        </div>
+
+        <div class="todo-item">
+          <div class="todo-num">4</div>
+          <div class="todo-content">
+            <div class="todo-title">Make 플랜 검토 <span class="priority-tag priority-mid">보통</span></div>
+            <div class="todo-desc">월 operations 75% 소진. Integration 시나리오를 15분 간격으로 조정했지만<br>장기적으로 플랜 업그레이드(Core → Pro) 또는 시나리오 최적화 필요.</div>
+            <button class="ask-btn" onclick="copyPrompt('Make operations 사용량 시나리오별로 분석하고 최적화 방법 제안해줘')">
+              사용량 분석 요청 복사
+            </button>
+          </div>
+        </div>
+
+        <div class="todo-item">
+          <div class="todo-num">5</div>
+          <div class="todo-content">
+            <div class="todo-title">타 지역 온보딩 폼 제작 (홀딩3) <span class="priority-tag priority-low">낮음</span></div>
+            <div class="todo-desc">가평 시스템 안정화 후 진행. 지역명·카카오채널ID·담당자 입력 →<br>Notion DB + Make 시나리오 + 랜딩페이지 자동 생성 플랫폼.</div>
+            <button class="ask-btn" onclick="copyPrompt('온마을 플랫폼 타 지역 온보딩 자동화 설계를 시작해줘')">
+              설계 시작 요청 복사
+            </button>
+          </div>
+        </div>
+
+        <div class="todo-item">
+          <div class="todo-num">6</div>
+          <div class="todo-content">
+            <div class="todo-title">담당자 DB 실제 데이터 입력 (홀딩1) <span class="priority-tag priority-low">낮음</span></div>
+            <div class="todo-desc">관리시스템 담당자 탭에 실제 담당자 정보 미입력 상태.<br>"홀딩1"을 Claude에 입력하면 바로 진행 가능.</div>
+            <button class="ask-btn" onclick="copyPrompt('홀딩1')">
+              홀딩1 진행 요청 복사
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 배포 체크리스트 -->
+    <div class="section" id="section-deploy">
+      <div class="page-title">GitHub 배포 체크리스트</div>
+      <div class="page-sub">파일 올리기 전 반드시 확인 · 가장 자주 발생하는 오류 방지</div>
+
+      <!-- 핵심 주의사항 -->
+      <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+        <div style="color:var(--red);font-weight:700;font-size:13px;margin-bottom:8px;">⚠ 자주 발생하는 실수</div>
+        <div style="font-size:12px;color:var(--text2);line-height:2;">
+          ① <b>admin 파일명 — 확장자 없이</b> admin (admin.html ❌)<br>
+          ② <b>구버전 파일 업로드</b> — Claude가 출력한 최신 파일인지 확인<br>
+          ③ <b>배포 후 강제 새로고침</b> 안 하면 캐시된 구버전이 보임<br>
+          ④ <b>images 폴더 안에</b> 넣어야 하는 파일을 루트에 올리는 실수
+        </div>
+      </div>
+
+      <!-- 파일별 업로드 체크 -->
+      <div class="section-label">파일별 GitHub 업로드 경로</div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr style="background:var(--bg2);color:var(--text2);">
+              <th style="padding:10px 14px;text-align:left;font-weight:500;">다운로드 파일명</th>
+              <th style="padding:10px 14px;text-align:left;font-weight:500;">GitHub 경로</th>
+              <th style="padding:10px 14px;text-align:left;font-weight:500;">주의</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:9px 14px;color:var(--gold);">온마을관리시스템_Firebase.html</td>
+              <td style="padding:9px 14px;color:var(--green);font-family:monospace;">admin</td>
+              <td style="padding:9px 14px;color:var(--red);">확장자 없음!</td>
+            </tr>
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:9px 14px;color:var(--gold);">index.html</td>
+              <td style="padding:9px 14px;color:var(--green);font-family:monospace;">index.html</td>
+              <td style="padding:9px 14px;color:var(--text3);">루트</td>
+            </tr>
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:9px 14px;color:var(--gold);">pass.html</td>
+              <td style="padding:9px 14px;color:var(--green);font-family:monospace;">pass.html</td>
+              <td style="padding:9px 14px;color:var(--text3);">루트</td>
+            </tr>
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:9px 14px;color:var(--gold);">onmaeul_logo.png</td>
+              <td style="padding:9px 14px;color:var(--green);font-family:monospace;">images/onmaeul_logo.png</td>
+              <td style="padding:9px 14px;color:var(--red);">images 폴더 안!</td>
+            </tr>
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:9px 14px;color:var(--gold);">favicon.ico / favicon_*.png</td>
+              <td style="padding:9px 14px;color:var(--green);font-family:monospace;">images/favicon.*</td>
+              <td style="padding:9px 14px;color:var(--red);">images 폴더 안!</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 배포 후 확인 -->
+      <div class="section-label">배포 후 확인 순서</div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:var(--text2);line-height:2.2;">
+        1️⃣ GitHub Commit 완료 확인 (초록색 체크)<br>
+        2️⃣ 1~2분 대기 (GitHub Pages 자동 배포 시간)<br>
+        3️⃣ 브라우저에서 <b>강제 새로고침</b> — iOS: 길게 누르기→새로고침 / PC: Ctrl+Shift+R<br>
+        4️⃣ 아래 테스트 링크로 실제 화면 확인
+      </div>
+
+      <!-- 테스트 링크 -->
+      <div class="section-label">배포 후 테스트 링크</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        <a href="https://lovewinsall78.github.io/onmaeul_gapyeong/" target="_blank"
+           style="padding:11px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--blue);text-decoration:none;font-size:12px;font-family:monospace;">
+          https://lovewinsall78.github.io/onmaeul_gapyeong/
+        </a>
+        <a href="https://lovewinsall78.github.io/onmaeul_gapyeong/admin" target="_blank"
+           style="padding:11px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--green);text-decoration:none;font-size:12px;font-family:monospace;">
+          https://lovewinsall78.github.io/onmaeul_gapyeong/admin
+        </a>
+        <a href="https://lovewinsall78.github.io/onmaeul_gapyeong/pass.html?pass=QR-1773545585001" target="_blank"
+           style="padding:11px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--gold);text-decoration:none;font-size:12px;font-family:monospace;">
+          .../pass.html?pass=QR-1773545585001 (패스 테스트)
+        </a>
+      </div>
+
+      <button class="ask-btn ask-btn-primary" onclick="copyPrompt('마지막 수정 파일 다시 만들어줘')">
+        최신 파일 재출력 요청 복사
+      </button>
+    </div>
+
+    <!-- 시스템 설정 현황 -->
+    <div class="section" id="section-config">
+      <div class="page-title">시스템 설정 현황</div>
+      <div class="page-sub">REGION_CONFIG · 핵심 설정값 빠른 참조</div>
+
+      <!-- REGION_CONFIG -->
+      <div class="section-label">REGION_CONFIG (관리시스템 + 랜딩페이지 공통)</div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <tbody>
+            <tr><td style="padding:9px 14px;color:var(--text2);width:40%;">regionName</td><td style="padding:9px 14px;color:var(--gold);font-family:monospace;">가평</td></tr>
+            <tr style="border-top:1px solid var(--border);"><td style="padding:9px 14px;color:var(--text2);">kakaoChannelId</td><td style="padding:9px 14px;color:var(--gold);font-family:monospace;">@온마을가평</td></tr>
+            <tr style="border-top:1px solid var(--border);"><td style="padding:9px 14px;color:var(--text2);">kakaoChannelUrl</td><td style="padding:9px 14px;color:var(--gold);font-family:monospace;font-size:11px;">http://pf.kakao.com/_FVxjZX</td></tr>
+            <tr style="border-top:1px solid var(--border);"><td style="padding:9px 14px;color:var(--text2);">adminPhone</td><td style="padding:9px 14px;color:var(--gold);font-family:monospace;">01073734996</td></tr>
+            <tr style="border-top:1px solid var(--border);"><td style="padding:9px 14px;color:var(--text2);">SMS 웹훅</td><td style="padding:9px 14px;color:var(--text3);font-family:monospace;font-size:10px;">jlp7zyy2tx4xuz0fi...</td></tr>
+            <tr style="border-top:1px solid var(--border);"><td style="padding:9px 14px;color:var(--text2);">관리자 알림 웹훅</td><td style="padding:9px 14px;color:var(--text3);font-family:monospace;font-size:10px;">mpdncqtym3a5ud37...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 랜딩페이지 설정 -->
+      <div class="section-label">랜딩페이지 핵심 설정</div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <tbody>
+            <tr>
+              <td style="padding:9px 14px;color:var(--text2);width:40%;">YouTube 영상 ID</td>
+              <td style="padding:9px 14px;color:var(--blue);font-family:monospace;" id="yt-id-display">rDuPUSUVm9M</td>
+              <td style="padding:9px 14px;">
+                <button onclick="copyPrompt('랜딩페이지 동영상 주소 변경해줘 — 새 URL: ')" style="font-size:11px;padding:4px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-family:inherit;">변경 요청</button>
+              </td>
+            </tr>
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:9px 14px;color:var(--text2);">로고 파일</td>
+              <td style="padding:9px 14px;color:var(--gold);font-family:monospace;">images/onmaeul_logo.png</td>
+              <td style="padding:9px 14px;">
+                <button onclick="copyPrompt('랜딩페이지에 로고로 쓸거야 모두 대체해줘')" style="font-size:11px;padding:4px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-family:inherit;">교체 요청</button>
+              </td>
+            </tr>
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:9px 14px;color:var(--text2);">파비콘</td>
+              <td style="padding:9px 14px;color:var(--gold);font-family:monospace;">images/favicon.ico</td>
+              <td style="padding:9px 14px;">
+                <button onclick="copyPrompt('업로드 된 이 파비콘으로 통일해')" style="font-size:11px;padding:4px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-family:inherit;">교체 요청</button>
+              </td>
+            </tr>
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:9px 14px;color:var(--text2);">날씨 기능</td>
+              <td style="padding:9px 14px;" id="config-weather-status">
+                <span id="config-weather-badge" class="badge badge-red">OFF</span>
+              </td>
+              <td style="padding:9px 14px;">
+                <button onclick="showSection('files');setTimeout(()=>document.querySelector('#section-files .file-card:last-child').scrollIntoView({behavior:'smooth'}),200)" style="font-size:11px;padding:4px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-family:inherit;">설정으로</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Firebase -->
+      <div class="section-label">Firebase 설정</div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <tbody>
+            <tr><td style="padding:9px 14px;color:var(--text2);width:40%;">projectId</td><td style="padding:9px 14px;color:var(--blue);font-family:monospace;">onmaeul-2e7ea</td></tr>
+            <tr style="border-top:1px solid var(--border);"><td style="padding:9px 14px;color:var(--text2);">인증 방식</td><td style="padding:9px 14px;color:var(--green);font-family:monospace;">익명 인증 (signInAnonymously)</td></tr>
+            <tr style="border-top:1px solid var(--border);"><td style="padding:9px 14px;color:var(--text2);">주요 컬렉션</td><td style="padding:9px 14px;color:var(--text2);">customers · employees · visits · tasks · coops · passes</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 자주 쓰는 변경 요청 -->
+      <div class="section-label">자주 하는 설정 변경</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="ask-btn" onclick="copyPrompt('REGION_CONFIG에서 관리자 번호를 변경해줘')">관리자 번호 변경</button>
+        <button class="ask-btn" onclick="copyPrompt('랜딩페이지 동영상 주소 변경해줘')">동영상 URL 변경</button>
+        <button class="ask-btn" onclick="copyPrompt('SMS 발송 웹훅 URL을 변경해줘')">SMS 웹훅 URL 변경</button>
+      </div>
+    </div>
+
+    <!-- Claude에 묻기 -->
+    <div class="section" id="section-claude">
+      <div class="page-title">Claude에 묻기</div>
+      <div class="page-sub">버튼을 클릭하면 요청 문구가 복사됩니다 → Claude 대화창에 붙여넣기</div>
+
+      <div class="section-label">시스템 점검</div>
+      <div class="quick-asks">
+        <button class="quick-ask-btn" onclick="copyPrompt('온마을 시스템 스냅샷 체크리스트 전체 실행해줘')">
+          전체 스냅샷 점검 실행
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('온마을 관리시스템 JS 문법 검사 실행해줘')">
+          JS 문법 검사
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('Make 시나리오 전체 활성화 상태와 오류 건수 확인해줘')">
+          Make 시나리오 상태 확인
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('온마을 신규고객 관리자 알림 시나리오 최근 실행 이력 확인해줘')">
+          관리자 알림 실행 이력 확인
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+      </div>
+
+      <div class="section-label" style="margin-top:20px;">기능 수정</div>
+      <div class="quick-asks">
+        <button class="quick-ask-btn" onclick="copyPrompt('노션 예약DB 컬럼명 확인해서 Gmail 알림 Make 시나리오 필드 매핑 수정해줘')">
+          Gmail 알림 필드 매핑 수정
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('온마을 관리시스템 고객 목록에 새 컬럼을 추가해줘')">
+          관리시스템 컬럼 추가
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('온마을 랜딩페이지 체험 카드 내용을 수정해줘')">
+          랜딩페이지 체험 카드 수정
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('온마을 REGION_CONFIG에서 관리자 번호를 변경해줘')">
+          관리자 번호 변경
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('마지막 수정 파일 다시 만들어줘')">
+          최신 파일 재출력
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('랜딩페이지 동영상 주소 변경해줘')">
+          동영상 URL 변경
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+      </div>
+
+      <div class="section-label" style="margin-top:20px;">QR 패스 관련</div>
+      <div class="quick-asks">
+        <button class="quick-ask-btn" onclick="copyPrompt('손님한테 전송된 QR링크가 화면에 안보임 — pass.html 확인해줘')">
+          패스 화면 안 보임 수정
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('관리자가 스캔 후 방문기록 클릭시 staffId 오류 발생')">
+          staffId 오류 수정
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('같은 바코드를 찍으면 중복 방문 기록 방지 로직 확인해줘')">
+          중복 방문 기록 확인
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+      </div>
+
+      <div class="section-label" style="margin-top:20px;">랜딩페이지 디자인</div>
+      <div class="quick-asks">
+        <button class="quick-ask-btn" onclick="copyPrompt('랜딩페이지 모바일 최적화 CSS 전체 적용해줘')">
+          모바일 최적화
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('랜딩페이지에 로고로 쓸거야 모두 대체해줘')">
+          로고 전체 교체
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('업로드 된 이 파비콘으로 통일해')">
+          파비콘 교체
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('날씨정보 뺀 랜딩페이지로')">
+          날씨 기능 제거
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+      </div>
+
+      <div class="section-label" style="margin-top:20px;">Make 자동화</div>
+      <div class="quick-asks">
+        <button class="quick-ask-btn" onclick="copyPrompt('Make Integration Notion Google Sheets 시나리오 오류 원인 분석해줘')">
+          Notion Google Sheets 오류 분석
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('Make 온마을 SMS 카톡 발송 시나리오 테스트 실행해줘')">
+          SMS 발송 시나리오 테스트
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('Make operations 사용량 시나리오별로 분석하고 최적화 방법 알려줘')">
+          Operations 사용량 분석
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+      </div>
+
+      <div class="section-label" style="margin-top:20px;">플랫폼 확장</div>
+      <div class="quick-asks">
+        <button class="quick-ask-btn" onclick="copyPrompt('온마을 관리시스템과 랜딩페이지를 Netlify로 배포하는 방법을 상세하게 알려줘')">
+          Netlify 웹 배포 방법
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('홀딩1')">
+          홀딩1 — 담당자 DB 입력 시작
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+        <button class="quick-ask-btn" onclick="copyPrompt('온마을 플랫폼 타 지역 온보딩 자동화 폼 설계를 시작해줘')">
+          홀딩3 — 타 지역 온보딩 폼 설계
+          <span class="copy-hint">클릭 → 복사</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast">클립보드에 복사되었습니다</div>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+function copyPrompt(text) {
+  // 대시보드에서 온 명령임을 Claude가 인식하도록 식별자 prefix 삽입
+  const tagged = '[온마을대시보드] ' + text;
+  navigator.clipboard.writeText(tagged).then(() => {
+    showToast();
+    const btn = event.currentTarget;
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1500);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = tagged;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast();
+  });
+}
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+
+/* ── 날씨 ON/OFF 토글 ── */
+// localStorage에 상태 저장 (대시보드 리로드 시 유지)
+function setWeather(enable) {
+  const badge = document.getElementById('weather-status-badge');
+  const msg   = document.getElementById('weather-action-msg');
+  const btnOn  = document.getElementById('btn-weather-on');
+  const btnOff = document.getElementById('btn-weather-off');
+
+  if (enable) {
+    localStorage.setItem('onmaeul_weather', 'on');
+    badge.textContent = 'ON';
+    badge.className = 'badge badge-green';
+    btnOn.style.borderColor  = 'var(--green-border)';
+    btnOn.style.background   = 'var(--green-bg)';
+    btnOn.style.color        = 'var(--green)';
+    btnOff.style.borderColor = 'var(--border)';
+    btnOff.style.background  = 'var(--bg3)';
+    btnOff.style.color       = 'var(--text2)';
+    // Claude에게 명령 복사
+    const cmd = '랜딩페이지에 날씨 정보 기능을 다시 활성화해줘 (위치기반 Open-Meteo API)';
+    navigator.clipboard.writeText('[온마을대시보드] ' + cmd).catch(()=>{});
+    msg.textContent = '✅ 명령어 복사됨 — Claude에 붙여넣기 하세요';
+    msg.style.color = 'var(--green)';
+  } else {
+    localStorage.setItem('onmaeul_weather', 'off');
+    badge.textContent = 'OFF';
+    badge.className = 'badge badge-red';
+    btnOff.style.borderColor = 'var(--red-border)';
+    btnOff.style.background  = 'var(--red-bg)';
+    btnOff.style.color       = 'var(--red)';
+    btnOn.style.borderColor  = 'var(--border)';
+    btnOn.style.background   = 'var(--bg3)';
+    btnOn.style.color        = 'var(--text2)';
+    const cmd = '날씨정보 뺀 랜딩페이지로';
+    navigator.clipboard.writeText('[온마을대시보드] ' + cmd).catch(()=>{});
+    msg.textContent = '✅ 명령어 복사됨 — Claude에 붙여넣기 하세요';
+    msg.style.color = 'var(--amber)';
+  }
+  setTimeout(() => { msg.textContent = ''; }, 4000);
+}
+
+// 페이지 로드 시 저장된 상태 반영
+window.addEventListener('DOMContentLoaded', function() {
+  const saved = localStorage.getItem('onmaeul_weather') || 'off';
+  const badge = document.getElementById('weather-status-badge');
+  const btnOn  = document.getElementById('btn-weather-on');
+  const btnOff = document.getElementById('btn-weather-off');
+  if (!badge) return;
+  if (saved === 'on') {
+    badge.textContent = 'ON'; badge.className = 'badge badge-green';
+    btnOn.style.borderColor='var(--green-border)'; btnOn.style.background='var(--green-bg)'; btnOn.style.color='var(--green)';
+    btnOff.style.borderColor='var(--border)'; btnOff.style.background='var(--bg3)'; btnOff.style.color='var(--text2)';
+    var cb = document.getElementById('config-weather-badge');
+    if (cb) { cb.textContent = 'ON'; cb.className = 'badge badge-green'; }
+  } else {
+    badge.textContent = 'OFF'; badge.className = 'badge badge-red';
+    btnOff.style.borderColor='var(--red-border)'; btnOff.style.background='var(--red-bg)'; btnOff.style.color='var(--red)';
+    btnOn.style.borderColor='var(--border)'; btnOn.style.background='var(--bg3)'; btnOn.style.color='var(--text2)';
+    var cb = document.getElementById('config-weather-badge');
+    if (cb) { cb.textContent = 'OFF'; cb.className = 'badge badge-red'; }
+  }
+});
+}
+</script>
+</body>
+</html>
