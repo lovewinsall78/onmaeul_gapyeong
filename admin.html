@@ -876,7 +876,7 @@ body.role-viewer .perm-write { display: none !important; }
           <div class="tbl-wrap">
             <table>
               <thead>
-                <tr><th>아이디</th><th>이름</th><th>역할</th><th>최근 로그인</th><th>관리</th></tr>
+                <tr><th>아이디</th><th>이름</th><th>역할</th><th>담당 가맹점</th><th>최근 로그인</th><th>관리</th></tr>
               </thead>
               <tbody id="users-tbody"></tbody>
             </table>
@@ -1475,8 +1475,15 @@ body.role-viewer .perm-write { display: none !important; }
       <button class="modal-close" onclick="closeScanMode()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-group" style="margin-bottom:12px;">
-        <label>가맹점 선택 *</label>
+      <!-- 담당 지점 자동인식 (일반 관리자) -->
+      <div id="scan-branch-auto" style="display:none;margin-bottom:12px;padding:10px 14px;background:#e8f5e9;border:1.5px solid #2e7d32;border-radius:8px;">
+        <div style="font-size:10px;color:#2e7d32;letter-spacing:1.5px;font-weight:700;margin-bottom:3px;">담당 지점 자동 인식</div>
+        <div id="scan-branch-auto-name" style="font-size:16px;font-weight:700;"></div>
+        <div id="scan-branch-auto-rate" style="font-size:12px;color:#555;margin-top:2px;"></div>
+      </div>
+      <!-- 슈퍼관리자 수동 선택 -->
+      <div id="scan-coop-group" class="form-group" style="margin-bottom:12px;">
+        <label>가맹점 선택 * <span style="font-size:11px;color:var(--text-muted);">(슈퍼관리자)</span></label>
         <select id="scan-coop-sel" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;">
           <option value="">-- 가맹점을 선택하세요 --</option>
         </select>
@@ -1711,6 +1718,12 @@ body.role-viewer .perm-write { display: none !important; }
             <option value="viewer">👁️ 읽기전용 (viewer)</option>
           </select>
         </div>
+        <div class="form-group">
+          <label>담당 가맹점 <span style="font-size:11px;color:var(--text-muted);">— 스캔 시 자동 지점 인식</span></label>
+          <select id="user-coop-input" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;">
+            <option value="">없음 (슈퍼관리자)</option>
+          </select>
+        </div>
         <div class="form-group" id="perm-section" style="display:none;">
           <label>모듈 접근 권한 <span style="font-size:10px;color:var(--text-muted);">(직원 역할만 적용)</span></label>
           <div class="perm-grid">
@@ -1914,7 +1927,13 @@ async function doLogin() {
       }
     }
 
-    setSession({ id: user.id, name: user.name, role: user.role, permissions: user.permissions||[] });
+    setSession({
+      id: user.id, name: user.name, role: user.role,
+      permissions: user.permissions||[],
+      coopId:      user.coopId   || null,
+      coopName:    user.coopName || null,
+      discountRate: user.discountRate != null ? Number(user.discountRate) : null
+    });
     applySession();
     const ls = document.getElementById('login-screen');
     ls.classList.add('hidden'); ls.style.display = 'none';
@@ -1958,6 +1977,18 @@ async function resetDefaultAccounts() {
 
 function applySession() {
   const s = getSession(); if (!s) return;
+  // 가맹점 전용 관리자 — 불필요 메뉴 숨기기
+  if(s.coopId){
+    ['nav-users','nav-m02','nav-m06','nav-m05','nav-report'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.style.display='none';
+    });
+  } else {
+    ['nav-users','nav-m02','nav-m06','nav-m05','nav-report'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.style.display='';
+    });
+  }
   document.body.className = 'role-' + s.role;
   document.getElementById('topbar-user').style.display = 'flex';
   document.getElementById('topbar-username').textContent = s.name;
@@ -2005,6 +2036,35 @@ async function getAll(col) {
     return bv - av;
   });
   return rows;
+}
+
+// ─── 가맹점 필터 래퍼 ─────────────────────────────────────────────
+// 슈퍼관리자(coopId=null) → 전체 / 가맹점 관리자 → 본인 지점만
+
+function myCoopId() {
+  const s = getSession();
+  return s && s.coopId ? String(s.coopId) : null;
+}
+
+async function getMyVisits() {
+  const all = await getAll('visits');
+  const cid = myCoopId();
+  return cid ? all.filter(v => String(v.coopId) === cid) : all;
+}
+
+async function getMyCustomers() {
+  const cid = myCoopId();
+  if (!cid) return getAll('customers');
+  // 본인 가맹점 방문 기록에 있는 고객만
+  const [customers, visits] = await Promise.all([getAll('customers'), getAll('visits')]);
+  const ids = new Set(visits.filter(v => String(v.coopId) === cid).map(v => String(v.customerId)));
+  return customers.filter(c => ids.has(String(c.id)));
+}
+
+async function getMyCoops() {
+  const all = await getAll('coops');
+  const cid = myCoopId();
+  return cid ? all.filter(c => String(c.id) === cid) : all;
 }
 
 // ─── 클라이언트 캐시 — Firestore 읽기 절약 ──────────────────────
@@ -2139,8 +2199,12 @@ function closeSidebar(){ document.getElementById('sidebar').classList.remove('op
 async function renderDashboard() {
   showLoading('대시보드 로딩 중...');
   try {
+    const _cid = myCoopId();
     const [customers, employees, tasks, coops] = await Promise.all([
-      getAllCached('customers'), getAllCached('employees'), getAllCached('tasks'), getAllCached('coops')
+      _cid ? getMyCustomers() : getAllCached('customers'),
+      getAllCached('employees'),
+      getAllCached('tasks'),
+      _cid ? getMyCoops() : getAllCached('coops')
     ]);
     const t = today();
     const todayTasks = tasks.filter(x=>x.date===t);
@@ -2575,7 +2639,7 @@ async function renderM01() {
   try {
     const q=document.getElementById('m01-search').value.toLowerCase();
     const fp=document.getElementById('m01-filter-prog').value;
-    const all=await getAll('customers');
+    const all=await getMyCustomers();
     const data=all.filter(c=>{
       const match=(c.name+c.phone+c.email).toLowerCase().includes(q);
       return match&&(!fp||c.program===fp);
@@ -3466,13 +3530,14 @@ async function deleteM06Item(key,id){
 // 사용자 관리
 // ═══════════════════════════════════════════════════════════
 let userEditId=null;
-function openAddUserModal(){
+async function openAddUserModal(){
   userEditId=null;
   document.getElementById('user-modal-title').textContent='계정 추가';
   ['user-id-input','user-name-input','user-pw-input'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('user-role-input').value='staff';
   document.getElementById('user-id-input').disabled=false;
-  onUserRoleChange(); // staff 선택 시 권한 섹션 자동 표시
+  await populateUserCoopSelect('');  // 가맹점 드롭다운 채우기
+  onUserRoleChange();
   openModal('user-modal');
 }
 async function openEditUserModal(id){
@@ -3488,10 +3553,35 @@ async function openEditUserModal(id){
     document.getElementById('user-pw-input').value='';
     document.getElementById('user-role-input').value=u.role;
     setCheckedPerms(u.permissions||[]);
+    await populateUserCoopSelect(u.coopId||'');  // 담당 가맹점 복원
     onUserRoleChange();
     openModal('user-modal');
   }finally{hideLoading();}
 }
+// ── 사용자 모달 가맹점 드롭다운 채우기 ──
+async function populateUserCoopSelect(selectedCoopId){
+  const sel = document.getElementById('user-coop-input');
+  if(!sel) return;
+  try {
+    const coops = await getAll('coops');
+    sel.innerHTML = '<option value="">없음 (슈퍼관리자)</option>' +
+      coops.map(c=>`<option value="${c.id}" data-discount="${c.discountRate||0}" data-name="${c.name}">${c.name}${c.discountRate?' ('+c.discountRate+'%)':''}</option>`).join('');
+    if(selectedCoopId) sel.value = String(selectedCoopId);
+  } catch(e) { console.warn('coops 로드 실패:', e.message); }
+}
+
+// ── 현재 선택된 가맹점 데이터 반환 ──
+async function getSelectedCoopData(){
+  const sel = document.getElementById('user-coop-input');
+  if(!sel || !sel.value) return { coopId:null, coopName:null, discountRate:null };
+  const opt = sel.options[sel.selectedIndex];
+  return {
+    coopId:       sel.value,
+    coopName:     opt.dataset.name  || opt.text,
+    discountRate: Number(opt.dataset.discount) || 0
+  };
+}
+
 async function saveUser(){
   const uid=document.getElementById('user-id-input').value.trim();
   const name=document.getElementById('user-name-input').value.trim();
@@ -3504,14 +3594,26 @@ async function saveUser(){
   try{
     if(userEditId){
       const perms = getCheckedPerms();
-      const updates={name,role,permissions:perms};
+      const coopData = await getSelectedCoopData();
+      const updates={
+        name, role, permissions:perms,
+        coopId:       coopData.coopId       || null,
+        coopName:     coopData.coopName     || null,
+        discountRate: coopData.discountRate != null ? coopData.discountRate : null
+      };
       if(pw) updates.pw=pw;
       await db.collection('users').doc(userEditId).update(updates);
     }else{
       const exists=(await db.collection('users').doc(uid).get()).exists;
       if(exists){alert('이미 존재하는 아이디입니다.');return;}
       const perms = getCheckedPerms();
-      await db.collection('users').doc(uid).set({id:uid,name,pw,role,permissions:perms,lastLogin:''});
+      const coopData = await getSelectedCoopData();
+      await db.collection('users').doc(uid).set({
+        id:uid, name, pw, role, permissions:perms, lastLogin:'',
+        coopId:       coopData.coopId       || null,
+        coopName:     coopData.coopName     || null,
+        discountRate: coopData.discountRate != null ? coopData.discountRate : null
+      });
     }
     closeModal('user-modal'); await renderUsers();
   }catch(e){alert('저장 실패: '+e.message);}finally{hideLoading();}
@@ -3534,6 +3636,7 @@ async function renderUsers(){
     document.getElementById('users-tbody').innerHTML=users.map(u=>`<tr>
       <td><b>${u.id}</b></td><td>${u.name}</td>
       <td>${roleLabels[u.role]||u.role}</td>
+      <td style="font-size:12px;">${u.coopName ? '<span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:10px;font-size:11px;">🏪 '+u.coopName+'</span>' : '<span style="color:var(--text-muted);font-size:11px;">슈퍼관리자</span>'}</td>
       <td style="font-size:12px;color:var(--text-muted);">${u.lastLogin||'없음'}</td>
       <td>
         <button class="btn btn-ghost btn-sm btn-icon" onclick="openEditUserModal('${u.id}')">✏️</button>
@@ -4593,17 +4696,22 @@ let _pendingVisit = null;
 
 async function initM09(){
   await Promise.all([renderM09Stats(), renderM09Customers(), renderM09Visits(), renderM09Report()]);
-  // 가맹점 필터 드롭다운 채우기
-  const coops = await getAll('coops');
-  const sel = document.getElementById('m09-filter-coop');
-  if(sel){
-    sel.innerHTML = '<option value="">전체 가맹점</option>' +
-      coops.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  // 슈퍼관리자만 가맹점 필터 드롭다운 표시
+  const cid = myCoopId();
+  const filterRow = document.getElementById('m09-filter-row');
+  if(filterRow) filterRow.style.display = cid ? 'none' : '';
+  if(!cid){
+    const coops = await getAll('coops');
+    const sel = document.getElementById('m09-filter-coop');
+    if(sel){
+      sel.innerHTML = '<option value="">전체 가맹점</option>' +
+        coops.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    }
   }
 }
 
 async function renderM09Stats(){
-  const [customers, visits] = await Promise.all([getAll('customers'), getAll('visits')]);
+  const [customers, visits] = await Promise.all([getMyCustomers(), getMyVisits()]);
   const passHolders = customers.filter(c=>c.qrToken).length;
   const today = new Date().toISOString().split('T')[0];
   const todayVisits = visits.filter(v=>v.visitDate===today).length;
@@ -4621,8 +4729,8 @@ async function renderM09Stats(){
 
 async function renderM09Customers(){
   const q = (document.getElementById('m09-search')||{}).value||'';
-  const customers = await getAll('customers');
-  const visits = await getAll('visits');
+  const customers = await getMyCustomers();
+  const visits = await getMyVisits();
   const visitMap = {};
   visits.forEach(v=>{ visitMap[v.customerId]=(visitMap[v.customerId]||0)+1; });
 
@@ -4664,7 +4772,7 @@ async function showPassDetail(custId){
   const customers = await getAll('customers');
   const c = customers.find(x=>x.id===custId);
   if(!c){ return; }
-  const visits = await getAll('visits');
+  const visits = await getMyVisits();
   const myVisits = visits.filter(v=>v.customerId===custId).sort((a,b)=>b.visitDate>a.visitDate?1:-1);
   const cnt = myVisits.length;
   const tier = getPassTier(cnt);
@@ -4710,7 +4818,7 @@ async function showPassDetail(custId){
 
 async function renderM09Visits(){
   const coopFilter = (document.getElementById('m09-filter-coop')||{}).value||'';
-  let visits = await getAll('visits');
+  let visits = await getMyVisits();
   visits.sort((a,b)=>b.visitDate>a.visitDate?1:-1);
   if(coopFilter) visits=visits.filter(v=>String(v.coopId)===coopFilter);
   const el=document.getElementById('m09-visits-list');
@@ -4733,15 +4841,47 @@ async function renderM09Visits(){
 }
 
 async function openScanMode(){
-  // 스캔 모달: 가맹점 드롭다운 채우기
-  const coops = await getAll('coops');
-  const sel = document.getElementById('scan-coop-sel');
+  const sess   = getSession();
+  const coops  = await getAll('coops');
+  const sel    = document.getElementById('scan-coop-sel');
+  const autoBox  = document.getElementById('scan-branch-auto');
+  const autoName = document.getElementById('scan-branch-auto-name');
+  const autoRate = document.getElementById('scan-branch-auto-rate');
+  const coopGrp  = document.getElementById('scan-coop-group');
+
   if(sel){
     sel.innerHTML='<option value="">-- 가맹점 선택 --</option>'+
       coops.map(c=>`<option value="${c.id}" data-discount="${c.discountRate||0}" data-name="${c.name}">${c.name}${c.discountRate?' ('+c.discountRate+'% 할인)':''}</option>`).join('');
   }
+
+  if(sess && sess.coopId){
+    // ── 담당 지점 있는 관리자: 자동 선택 ──
+    if(sel){
+      const opt = Array.from(sel.options).find(o=>String(o.value)===String(sess.coopId));
+      if(!opt){
+        // 드롭다운에 없으면 직접 추가
+        const c = coops.find(c=>String(c.id)===String(sess.coopId));
+        if(c){
+          const no=document.createElement('option');
+          no.value=String(c.id); no.dataset.discount=c.discountRate||0; no.dataset.name=c.name;
+          no.textContent=c.name; sel.appendChild(no);
+        }
+      }
+      sel.value = String(sess.coopId);
+    }
+    const rate = sess.discountRate != null ? sess.discountRate
+      : (coops.find(c=>String(c.id)===String(sess.coopId))?.discountRate||0);
+    if(autoBox)  { autoBox.style.display='block'; }
+    if(autoName) { autoName.textContent = sess.coopName || '담당 지점'; }
+    if(autoRate) { autoRate.textContent = rate + '% 할인 자동 적용'; }
+    if(coopGrp)  { coopGrp.style.display='none'; }
+  } else {
+    // ── 슈퍼관리자 또는 지점 미배정 ──
+    if(autoBox)  { autoBox.style.display='none'; }
+    if(coopGrp)  { coopGrp.style.display='block'; }
+  }
+
   openModal('scan-modal');
-  // 카메라 스캔 시작
   setTimeout(()=>startQRScanner(), 400);
 }
 
@@ -4808,7 +4948,18 @@ async function processScan(decodedText){
     // 가맹점 정보
     const sel=document.getElementById('scan-coop-sel');
     const coopId=sel?sel.value:'';
-    if(!coopId){ alert('가맹점을 먼저 선택해주세요.'); startQRScanner(); return; }
+    if(!coopId){
+      const s2 = getSession();
+      if(s2 && s2.coopId){
+        const coops2 = await getAll('coops');
+        const c2 = coops2.find(c=>String(c.id)===String(s2.coopId));
+        if(c2 && sel){ sel.value=String(c2.id); }
+        else { alert('담당 지점 정보를 불러올 수 없습니다. 관리자에게 문의하세요.'); startQRScanner(); return; }
+      } else {
+        alert('가맹점을 먼저 선택해주세요.');
+        startQRScanner(); return;
+      }
+    }
     const coopOpt=sel.options[sel.selectedIndex];
     const coopName=coopOpt.dataset.name||coopOpt.text;
     const discountRate=Number(coopOpt.dataset.discount)||0;
@@ -5187,7 +5338,7 @@ async function renderM09Report() {
   const months = Number((document.getElementById('m09-report-months')||{}).value || 6);
   showLoading();
   try {
-    const visits = await getAll('visits');
+    const visits = await getMyVisits();
     const coops  = await getAllCached('coops');
 
     const now = new Date();
