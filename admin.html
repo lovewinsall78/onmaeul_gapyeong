@@ -256,6 +256,30 @@ tr:last-child td { border-bottom: none; }
 .login-hint { background: #F0F9F4; border-radius: 10px; padding: 12px 14px; margin-top: 18px; font-size: 11px; color: var(--text-muted); }
 .login-hint b { color: var(--primary); }
 
+/* ── 3탭 로그인 ── */
+.login-tabs {
+  display: flex; border-radius: 12px; background: #f0f4f0;
+  padding: 4px; margin-bottom: 24px; gap: 2px;
+}
+.login-tab {
+  flex: 1; padding: 9px 4px; border: none; border-radius: 9px;
+  background: transparent; font-size: 12px; font-weight: 600;
+  color: var(--text-muted); cursor: pointer; transition: all .2s;
+  white-space: nowrap;
+}
+.login-tab.active {
+  background: #fff; color: var(--primary-dark);
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+.login-panel { display: none; }
+.login-panel.active { display: block; }
+.reg-step { display:none; }
+.reg-step.active { display:block; }
+.pw-change-note {
+  background:#FFF8E1; border:1px solid #FFD54F; border-radius:8px;
+  padding:10px 12px; font-size:11px; color:#795548; margin-bottom:14px;
+}
+
 /* ===== ROLE PERMISSIONS ===== */
 /* staff: admin-only items hidden */
 body.role-staff .perm-admin { display: none !important; }
@@ -462,32 +486,120 @@ body.role-viewer .perm-write { display: none !important; }
 
 <!-- ===== LOGIN SCREEN ===== -->
 <div id="login-screen">
-  <div class="login-box">
+  <div class="login-box" style="max-width:420px;">
     <div class="logo-area">
       <span class="icon">🌿</span>
       <h2>온마을 관리시스템</h2>
-      <p>통합 운영 플랫폼 · 로그인</p>
+      <p>통합 운영 플랫폼</p>
     </div>
-    <div class="form-group">
-      <label>아이디</label>
-      <input type="text" id="login-id" placeholder="아이디 입력" onkeydown="if(event.key==='Enter')doLogin()">
+
+    <!-- 3탭 -->
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchLoginTab('register')">📝 업체 등록</button>
+      <button class="login-tab"        onclick="switchLoginTab('biz')">🏪 업체 로그인</button>
+      <button class="login-tab"        onclick="switchLoginTab('admin')">👑 관리자</button>
     </div>
-    <div class="form-group">
-      <label>비밀번호</label>
-      <input type="password" id="login-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()">
+
+    <!-- ── 탭1: 업체 등록 ── -->
+    <div class="login-panel active" id="panel-register">
+      <!-- STEP 1: 업체 정보 -->
+      <div class="reg-step active" id="reg-step1">
+        <div class="form-group">
+          <label>업체명 *</label>
+          <input id="reg-biz-name" placeholder="예: 온더락 카페">
+        </div>
+        <div class="form-group">
+          <label>대표자명 *</label>
+          <input id="reg-owner-name" placeholder="홍길동">
+        </div>
+        <div class="form-group">
+          <label>연락처 *</label>
+          <input id="reg-biz-phone" placeholder="010-0000-0000" oninput="formatPhone(this)">
+        </div>
+        <div class="form-group">
+          <label>업종</label>
+          <select id="reg-biz-type" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;">
+            <option value="">선택</option>
+            <option>카페</option><option>식당</option><option>숙박</option>
+            <option>공방·체험</option><option>판매·기타</option>
+          </select>
+        </div>
+        <button class="login-btn" onclick="regStep1Next()">다음 →</button>
+        <div class="login-error" id="reg-error1"></div>
+      </div>
+
+      <!-- STEP 2: 로그인 계정 생성 -->
+      <div class="reg-step" id="reg-step2">
+        <div class="pw-change-note">
+          ✅ 업체 정보 등록 완료!<br>
+          이제 로그인에 사용할 아이디와 비밀번호를 만들어주세요.
+        </div>
+        <div class="form-group">
+          <label>로그인 아이디 *</label>
+          <input id="reg-uid" placeholder="영문+숫자 4~20자">
+        </div>
+        <div class="form-group">
+          <label>비밀번호 * <span style="font-size:10px;color:var(--text-muted);">6자 이상</span></label>
+          <input id="reg-pw" type="password" placeholder="6자 이상" oninput="checkRegPwMatch()">
+        </div>
+        <div class="form-group">
+          <label>비밀번호 재확인 *</label>
+          <div style="position:relative;">
+            <input id="reg-pw2" type="password" placeholder="동일하게 입력" oninput="checkRegPwMatch()"
+              style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;box-sizing:border-box;padding-right:36px;">
+            <span id="reg-pw-icon" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;"></span>
+          </div>
+          <div id="reg-pw-msg" style="font-size:11px;margin-top:4px;min-height:16px;"></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="login-btn" style="background:var(--text-muted);" onclick="regGoBack()">← 이전</button>
+          <button class="login-btn" onclick="regStep2Submit()">업체 등록 완료</button>
+        </div>
+        <div class="login-error" id="reg-error2"></div>
+      </div>
+
+      <!-- STEP 3: 등록 완료 -->
+      <div class="reg-step" id="reg-step3">
+        <div style="text-align:center;padding:20px 0;">
+          <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+          <h3 style="color:var(--primary-dark);margin-bottom:8px;" id="reg-done-title">등록 완료!</h3>
+          <p style="font-size:13px;color:var(--text-muted);line-height:1.8;" id="reg-done-msg"></p>
+        </div>
+        <button class="login-btn" onclick="switchLoginTab('biz')">업체 로그인으로 이동 →</button>
+      </div>
     </div>
-    <button class="login-btn" onclick="doLogin()">로그인</button>
-    <div class="login-error" id="login-error"></div>
-    <div class="login-hint">
-      <b>초기 계정 안내</b><br>
-      관리자: admin / admin1234<br>
-      직원: staff / staff1234<br>
-      읽기전용: viewer / view1234
+
+    <!-- ── 탭2: 업체 로그인 ── -->
+    <div class="login-panel" id="panel-biz">
+      <div class="form-group">
+        <label>아이디</label>
+        <input type="text" id="biz-login-id" placeholder="업체 아이디 입력" onkeydown="if(event.key==='Enter')doBizLogin()">
+      </div>
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input type="password" id="biz-login-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doBizLogin()">
+      </div>
+      <button class="login-btn" onclick="doBizLogin()">🏪 업체 로그인</button>
+      <div class="login-error" id="biz-login-error"></div>
     </div>
-    <div style="text-align:center;margin-top:6px;">
-      <button onclick="resetDefaultAccounts()" style="background:none;border:none;color:#9E9E9E;font-size:11px;cursor:pointer;text-decoration:underline;padding:4px;">
-        🔑 계정 초기화 (비밀번호 리셋)
-      </button>
+
+    <!-- ── 탭3: 관리자 로그인 ── -->
+    <div class="login-panel" id="panel-admin">
+      <div class="form-group">
+        <label>관리자 아이디</label>
+        <input type="text" id="admin-login-id" placeholder="관리자 아이디" onkeydown="if(event.key==='Enter')doAdminLogin()">
+      </div>
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input type="password" id="admin-login-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doAdminLogin()">
+      </div>
+      <button class="login-btn" style="background:var(--primary-dark);" onclick="doAdminLogin()">👑 관리자 로그인</button>
+      <div class="login-error" id="admin-login-error"></div>
+      <div style="text-align:center;margin-top:8px;">
+        <button onclick="resetDefaultAccounts()" style="background:none;border:none;color:#9E9E9E;font-size:11px;cursor:pointer;text-decoration:underline;padding:4px;">
+          🔑 관리자 계정 초기화
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -542,7 +654,8 @@ body.role-viewer .perm-write { display: none !important; }
   <div style="padding:14px 18px;border-top:1px solid rgba(255,255,255,.1);" id="sidebar-user-info">
     <div style="font-size:11px;color:rgba(255,255,255,.5);">로그인 중</div>
     <div id="sidebar-username" style="font-size:13px;color:#fff;font-weight:600;margin-top:2px;"></div>
-    <button onclick="doLogout()" style="margin-top:8px;width:100%;padding:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:6px;font-size:12px;cursor:pointer;">🚪 로그아웃</button>
+    <button onclick="openChangePwModal()" style="margin-top:8px;width:100%;padding:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);border-radius:6px;font-size:11px;cursor:pointer;">🔑 비밀번호 변경</button>
+    <button onclick="doLogout()" style="margin-top:4px;width:100%;padding:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:6px;font-size:12px;cursor:pointer;">🚪 로그아웃</button>
   </div>
 </aside>
 
@@ -1709,7 +1822,16 @@ body.role-viewer .perm-write { display: none !important; }
       <div class="form-grid" style="grid-template-columns:1fr;">
         <div class="form-group"><label>아이디 *</label><input id="user-id-input" placeholder="영문+숫자 4~20자"></div>
         <div class="form-group"><label>이름 *</label><input id="user-name-input" placeholder="실명 입력"></div>
-        <div class="form-group"><label>비밀번호 *</label><input id="user-pw-input" type="password" placeholder="6자 이상"></div>
+        <div class="form-group"><label>비밀번호 *</label><input id="user-pw-input" type="password" placeholder="6자 이상" oninput="checkPwMatch()"></div>
+        <div class="form-group">
+          <label>비밀번호 재확인 *</label>
+          <div style="position:relative;">
+            <input id="user-pw-confirm" type="password" placeholder="비밀번호 다시 입력" oninput="checkPwMatch()"
+              style="width:100%;padding:9px 36px 9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box;">
+            <span id="pw-match-icon" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;"></span>
+          </div>
+          <div id="pw-match-msg" style="font-size:11px;margin-top:4px;min-height:16px;"></div>
+        </div>
         <div class="form-group">
           <label>역할</label>
           <select id="user-role-input" onchange="onUserRoleChange()">
@@ -1895,6 +2017,238 @@ async function getUsers() {
   }
 }
 
+/* ════════════════════════════════════════
+   3탭 로그인 시스템
+════════════════════════════════════════ */
+
+// ── 탭 전환 ──
+function switchLoginTab(tab){
+  ['register','biz','admin'].forEach(t=>{
+    document.getElementById('panel-'+t).classList.toggle('active', t===tab);
+  });
+  document.querySelectorAll('.login-tab').forEach((el,i)=>{
+    el.classList.toggle('active', ['register','biz','admin'][i]===tab);
+  });
+  // 탭 전환 시 에러 초기화
+  ['reg-error1','reg-error2','biz-login-error','admin-login-error']
+    .forEach(id=>{ const e=document.getElementById(id); if(e) e.textContent=''; });
+}
+
+// ── 업체 등록 STEP1 → STEP2 ──
+function regStep1Next(){
+  const name  = document.getElementById('reg-biz-name').value.trim();
+  const owner = document.getElementById('reg-owner-name').value.trim();
+  const phone = document.getElementById('reg-biz-phone').value.trim();
+  const err   = document.getElementById('reg-error1');
+  if(!name||!owner||!phone){ err.textContent='업체명, 대표자명, 연락처를 모두 입력하세요.'; return; }
+  err.textContent='';
+  document.getElementById('reg-step1').classList.remove('active');
+  document.getElementById('reg-step2').classList.add('active');
+}
+function regGoBack(){
+  document.getElementById('reg-step2').classList.remove('active');
+  document.getElementById('reg-step1').classList.add('active');
+}
+function checkRegPwMatch(){
+  const pw  = document.getElementById('reg-pw').value;
+  const pw2 = document.getElementById('reg-pw2').value;
+  const icon= document.getElementById('reg-pw-icon');
+  const msg = document.getElementById('reg-pw-msg');
+  if(!pw2){ icon.textContent=''; msg.textContent=''; return; }
+  if(pw===pw2){ icon.textContent='✅'; msg.textContent='일치합니다.'; msg.style.color='#2e7d32'; }
+  else        { icon.textContent='❌'; msg.textContent='비밀번호가 다릅니다.'; msg.style.color='#c62828'; }
+}
+
+// ── 업체 등록 STEP2 제출 ──
+async function regStep2Submit(){
+  const uid  = document.getElementById('reg-uid').value.trim();
+  const pw   = document.getElementById('reg-pw').value;
+  const pw2  = document.getElementById('reg-pw2').value;
+  const err  = document.getElementById('reg-error2');
+  if(!uid)        { err.textContent='아이디를 입력하세요.'; return; }
+  if(uid.length<4){ err.textContent='아이디는 4자 이상이어야 합니다.'; return; }
+  if(!pw||pw.length<6){ err.textContent='비밀번호는 6자 이상이어야 합니다.'; return; }
+  if(pw!==pw2)    { err.textContent='비밀번호가 일치하지 않습니다.'; return; }
+
+  // 가맹점 정보 수집
+  const bizName  = document.getElementById('reg-biz-name').value.trim();
+  const ownerName= document.getElementById('reg-owner-name').value.trim();
+  const bizPhone = document.getElementById('reg-biz-phone').value.trim();
+  const bizType  = document.getElementById('reg-biz-type').value;
+
+  showLoading('업체 등록 중...');
+  try{
+    // 아이디 중복 확인
+    const exists = (await db.collection('users').doc(uid).get()).exists;
+    if(exists){ err.textContent='이미 사용 중인 아이디입니다.'; hideLoading(); return; }
+
+    // coops 컬렉션에 가맹점 등록
+    const coopId = await genId('coops');
+    const coopData = {
+      id: coopId, name: bizName, owner: ownerName,
+      phone: bizPhone, type: bizType,
+      discountRate: 0, active: true,
+      createdAt: new Date().toISOString()
+    };
+    await upsert('coops', coopData);
+    invalidateCache('coops');
+
+    // users 컬렉션에 업체 계정 등록
+    await db.collection('users').doc(uid).set({
+      id: uid, name: ownerName, pw: pw,
+      role: 'staff', permissions: [],
+      coopId: coopId, coopName: bizName,
+      discountRate: 0, lastLogin: '',
+      isBizAccount: true
+    });
+
+    // 완료 화면
+    document.getElementById('reg-step2').classList.remove('active');
+    document.getElementById('reg-step3').classList.add('active');
+    document.getElementById('reg-done-title').textContent = bizName + ' 등록 완료!';
+    document.getElementById('reg-done-msg').textContent = '아이디: ' + uid + ' / 담당 가맹점: ' + bizName + '\n\n업체 로그인 탭에서 로그인하세요.';
+      '업체 로그인 탭에서 로그인하세요.';
+
+    // 입력 초기화
+    ['reg-biz-name','reg-owner-name','reg-biz-phone','reg-uid','reg-pw','reg-pw2']
+      .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('reg-biz-type').value='';
+
+  }catch(e){ err.textContent='등록 실패: '+(e.message||'다시 시도해주세요.'); }
+  finally { hideLoading(); }
+}
+
+// ── 업체 로그인 ──
+async function doBizLogin(){
+  const id  = document.getElementById('biz-login-id').value.trim();
+  const pw  = document.getElementById('biz-login-pw').value;
+  const err = document.getElementById('biz-login-error');
+  if(!id||!pw){ err.textContent='아이디와 비밀번호를 입력하세요.'; return; }
+  showLoading('로그인 중...');
+  try{
+    const doc = await db.collection('users').doc(id).get();
+    if(!doc.exists){ err.textContent='아이디 또는 비밀번호가 올바르지 않습니다.'; hideLoading(); return; }
+    const user = doc.data();
+    if(user.pw !== pw){ err.textContent='아이디 또는 비밀번호가 올바르지 않습니다.'; hideLoading(); return; }
+    if(user.role === 'admin'){ err.textContent='관리자는 관리자 탭에서 로그인하세요.'; hideLoading(); return; }
+    if(!user.coopId){ err.textContent='업체 계정이 아닙니다.'; hideLoading(); return; }
+
+    await db.collection('users').doc(id).set({ lastLogin: new Date().toLocaleString('ko-KR') }, { merge: true });
+    setSession({ id: user.id, name: user.name, role: user.role, permissions: user.permissions||[],
+      coopId: user.coopId, coopName: user.coopName, discountRate: user.discountRate||0,
+      isBizAccount: true, mustChangePw: user.mustChangePw || false });
+    applySession();
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('biz-login-id').value='';
+    document.getElementById('biz-login-pw').value='';
+    err.textContent='';
+    showModule('dashboard');
+    // 비밀번호 변경 요구 플래그
+    if(user.mustChangePw) setTimeout(()=>openChangePwModal(), 500);
+  }catch(e){ err.textContent='오류: '+(e.message||'다시 시도해주세요.'); }
+  finally { hideLoading(); }
+}
+
+// ── 관리자 로그인 ──
+async function doAdminLogin(){
+  const id  = document.getElementById('admin-login-id').value.trim();
+  const pw  = document.getElementById('admin-login-pw').value;
+  const err = document.getElementById('admin-login-error');
+  if(!id||!pw){ err.textContent='아이디와 비밀번호를 입력하세요.'; return; }
+  showLoading('로그인 중...');
+  try{
+    const users = await getUsers();
+    let user = users.find(u=>u.id===id);
+    if(!user){
+      try{ const d=await db.collection('users').doc(id).get(); if(d.exists) user=d.data(); }catch(e){}
+    }
+    if(!user||user.pw!==pw){ err.textContent='아이디 또는 비밀번호가 올바르지 않습니다.'; hideLoading(); return; }
+    if(user.role!=='admin'){ err.textContent='관리자 계정만 로그인 가능합니다.'; hideLoading(); return; }
+
+    try{ await db.collection('users').doc(id).set({lastLogin:new Date().toLocaleString('ko-KR')},{merge:true}); }catch(e){}
+    setSession({ id:user.id, name:user.name, role:user.role, permissions:user.permissions||[],
+      coopId:null, coopName:null, mustChangePw:user.mustChangePw||false });
+    applySession();
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('admin-login-id').value='';
+    document.getElementById('admin-login-pw').value='';
+    err.textContent='';
+    showModule('dashboard');
+    if(user.mustChangePw) setTimeout(()=>openChangePwModal(), 500);
+  }catch(e){ err.textContent='오류: '+(e.message||'다시 시도해주세요.'); }
+  finally { hideLoading(); }
+}
+
+// ── 비밀번호 변경 모달 (로그인 후 변경) ──
+function openChangePwModal(){
+  // 이미 모달 있으면 열기
+  const m = document.getElementById('change-pw-modal');
+  if(m){ openModal('change-pw-modal'); return; }
+  // 동적 생성
+  const div = document.createElement('div');
+  div.className='modal-overlay'; div.id='change-pw-modal';
+  div.innerHTML=`
+    <div class="modal" style="max-width:380px;">
+      <div class="modal-header">
+        <h3>🔑 비밀번호 변경</h3>
+        <button class="modal-close" onclick="closeModal('change-pw-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="pw-change-note">초기 비밀번호를 변경해주세요.</div>
+        <div class="form-group"><label>현재 비밀번호</label>
+          <input id="cpw-cur" type="password" placeholder="현재 비밀번호"></div>
+        <div class="form-group"><label>새 비밀번호</label>
+          <input id="cpw-new" type="password" placeholder="6자 이상" oninput="checkCpwMatch()"></div>
+        <div class="form-group"><label>새 비밀번호 재확인</label>
+          <div style="position:relative;">
+            <input id="cpw-new2" type="password" placeholder="동일하게 입력" oninput="checkCpwMatch()"
+              style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;box-sizing:border-box;padding-right:36px;">
+            <span id="cpw-icon" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;"></span>
+          </div>
+          <div id="cpw-msg" style="font-size:11px;margin-top:4px;min-height:16px;"></div>
+        </div>
+        <div id="cpw-error" class="login-error"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('change-pw-modal')">나중에</button>
+        <button class="btn btn-primary" onclick="submitChangePw()">변경 완료</button>
+      </div>
+    </div>`;
+  document.body.appendChild(div);
+  openModal('change-pw-modal');
+}
+function checkCpwMatch(){
+  const pw=document.getElementById('cpw-new')?.value;
+  const pw2=document.getElementById('cpw-new2')?.value;
+  const icon=document.getElementById('cpw-icon');
+  const msg=document.getElementById('cpw-msg');
+  if(!pw2){ if(icon) icon.textContent=''; if(msg) msg.textContent=''; return; }
+  if(pw===pw2){ if(icon) icon.textContent='✅'; if(msg){msg.textContent='일치합니다.';msg.style.color='#2e7d32';} }
+  else        { if(icon) icon.textContent='❌'; if(msg){msg.textContent='비밀번호가 다릅니다.';msg.style.color='#c62828';} }
+}
+async function submitChangePw(){
+  const cur  = document.getElementById('cpw-cur')?.value;
+  const nw   = document.getElementById('cpw-new')?.value;
+  const nw2  = document.getElementById('cpw-new2')?.value;
+  const err  = document.getElementById('cpw-error');
+  const sess = getSession();
+  if(!cur)           { err.textContent='현재 비밀번호를 입력하세요.'; return; }
+  if(!nw||nw.length<6){ err.textContent='새 비밀번호는 6자 이상이어야 합니다.'; return; }
+  if(nw!==nw2)       { err.textContent='새 비밀번호가 일치하지 않습니다.'; return; }
+  showLoading('변경 중...');
+  try{
+    const doc = await db.collection('users').doc(sess.id).get();
+    const user = doc.data();
+    if(user.pw!==cur){ err.textContent='현재 비밀번호가 올바르지 않습니다.'; hideLoading(); return; }
+    await db.collection('users').doc(sess.id).set({ pw:nw, mustChangePw:false }, { merge:true });
+    closeModal('change-pw-modal');
+    alert('✅ 비밀번호가 변경되었습니다.');
+  }catch(e){ err.textContent='변경 실패: '+(e.message||'다시 시도해주세요.'); }
+  finally { hideLoading(); }
+}
+
 async function doLogin() {
   const id = document.getElementById('login-id').value.trim();
   const pw = document.getElementById('login-pw').value;
@@ -1952,6 +2306,13 @@ function doLogout() {
   document.body.className = '';
   const ls = document.getElementById('login-screen');
   ls.classList.remove('hidden'); ls.style.display = 'flex';
+  // 로그아웃 시 탭 초기화 (업체 등록 탭으로)
+  switchLoginTab('register');
+  // 업체등록 step 초기화
+  ['reg-step1','reg-step2','reg-step3'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.toggle('active', i===0);
+  });
   document.getElementById('topbar-user').style.display = 'none';
   document.getElementById('login-id').value = '';
   document.getElementById('login-pw').value = '';
@@ -3533,7 +3894,8 @@ let userEditId=null;
 async function openAddUserModal(){
   userEditId=null;
   document.getElementById('user-modal-title').textContent='계정 추가';
-  ['user-id-input','user-name-input','user-pw-input'].forEach(id=>document.getElementById(id).value='');
+  ['user-id-input','user-name-input','user-pw-input','user-pw-confirm'].forEach(id=>document.getElementById(id).value='');
+  resetPwMatch();
   document.getElementById('user-role-input').value='staff';
   document.getElementById('user-id-input').disabled=false;
   await populateUserCoopSelect('');  // 가맹점 드롭다운 채우기
@@ -3551,6 +3913,8 @@ async function openEditUserModal(id){
     document.getElementById('user-id-input').disabled=true;
     document.getElementById('user-name-input').value=u.name;
     document.getElementById('user-pw-input').value='';
+    document.getElementById('user-pw-confirm').value='';
+    resetPwMatch();
     document.getElementById('user-role-input').value=u.role;
     setCheckedPerms(u.permissions||[]);
     await populateUserCoopSelect(u.coopId||'');  // 담당 가맹점 복원
@@ -3558,6 +3922,30 @@ async function openEditUserModal(id){
     openModal('user-modal');
   }finally{hideLoading();}
 }
+// ── 비밀번호 재확인 실시간 체크 ──
+function checkPwMatch(){
+  const pw  = document.getElementById('user-pw-input').value;
+  const pw2 = document.getElementById('user-pw-confirm').value;
+  const icon = document.getElementById('pw-match-icon');
+  const msg  = document.getElementById('pw-match-msg');
+  if(!pw2){ icon.textContent=''; msg.textContent=''; return; }
+  if(pw === pw2){
+    icon.textContent='✅';
+    msg.textContent='비밀번호가 일치합니다.';
+    msg.style.color='#2e7d32';
+  } else {
+    icon.textContent='❌';
+    msg.textContent='비밀번호가 일치하지 않습니다.';
+    msg.style.color='#c62828';
+  }
+}
+function resetPwMatch(){
+  const icon = document.getElementById('pw-match-icon');
+  const msg  = document.getElementById('pw-match-msg');
+  if(icon) icon.textContent='';
+  if(msg)  msg.textContent='';
+}
+
 // ── 사용자 모달 가맹점 드롭다운 채우기 ──
 async function populateUserCoopSelect(selectedCoopId){
   const sel = document.getElementById('user-coop-input');
@@ -3590,6 +3978,8 @@ async function saveUser(){
   if(!uid||!name){alert('아이디와 이름을 입력하세요.');return;}
   if(!userEditId&&!pw){alert('비밀번호를 입력하세요.');return;}
   if(pw&&pw.length<6){alert('비밀번호는 6자 이상이어야 합니다.');return;}
+  const pwConfirm = document.getElementById('user-pw-confirm').value;
+  if(pw && pw !== pwConfirm){alert('비밀번호가 일치하지 않습니다.');document.getElementById('user-pw-confirm').focus();return;}
   showLoading('저장 중...');
   try{
     if(userEditId){
