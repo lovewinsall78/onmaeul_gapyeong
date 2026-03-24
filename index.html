@@ -1163,36 +1163,101 @@ body.has-weather .hero-content { padding-top: 136px; }
 .exp-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:3px; }
 .exp-grid .exp-inline-drawer { grid-column: 1 / -1; }
 
-/* ── 카테고리 탭 ── */
+/* ── 카테고리 탭 (카드형 선택 UI) ── */
 .cat-tabs {
-  display:flex; gap:0; margin-bottom:40px;
-  border-bottom:2px solid rgba(184,150,90,0.2);
-  overflow-x:auto; -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:16px;
+  margin-bottom:0;
+  padding-bottom:0;
+  border-bottom:none;
 }
-.cat-tabs::-webkit-scrollbar { display:none; }
-.cat-tab {
-  flex-shrink:0; padding:14px 28px; border:none; background:none;
-  font-family:'Noto Serif KR',serif; font-weight:300;
-  font-size:clamp(13px,1.4vw,15px); color:var(--fog);
-  cursor:pointer; position:relative; white-space:nowrap;
-  transition:color .25s;
+/* 4탭 이상 자동 대응 */
+.cat-tabs.has-4 { grid-template-columns: repeat(4, 1fr); }
+.cat-tabs.has-5 { grid-template-columns: repeat(5, 1fr); }
+@media(max-width:700px){
+  .cat-tabs, .cat-tabs.has-4, .cat-tabs.has-5 {
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+  }
 }
-.cat-tab::after {
-  content:''; position:absolute; bottom:-2px; left:0; right:0; height:2px;
-  background:var(--gold); transform:scaleX(0); transition:transform .3s;
-}
-.cat-tab.active { color:var(--ink); font-weight:400; }
-.cat-tab.active::after { transform:scaleX(1); }
-.cat-tab-num {
-  display:inline-block; font-family:'DM Sans',sans-serif;
-  font-size:0.65em; letter-spacing:.15em; color:var(--gold);
-  margin-right:6px; vertical-align:middle;
+@media(max-width:420px){
+  .cat-tabs { grid-template-columns: 1fr; }
 }
 
-/* ── 카테고리 패널 ── */
-.cat-panel { display:none; }
-.cat-panel.active { display:block; }
+.cat-tab {
+  display:flex; flex-direction:column; align-items:flex-start;
+  gap:10px; padding:24px 22px 22px;
+  border:1.5px solid rgba(184,150,90,0.2);
+  border-radius:14px;
+  background:rgba(250,247,242,0.04);
+  font-family:'Noto Serif KR',serif; font-weight:300;
+  font-size:clamp(14px,1.5vw,16px); color:var(--fog);
+  cursor:pointer; position:relative;
+  text-align:left; white-space:normal;
+  transition:all .3s cubic-bezier(.25,.46,.45,.94);
+}
+.cat-tab:hover {
+  border-color:rgba(184,150,90,0.55);
+  background:rgba(184,150,90,0.06);
+  color:var(--ink);
+  transform:translateY(-3px);
+}
+.cat-tab.open {
+  border-color:var(--gold);
+  background:rgba(184,150,90,0.08);
+  color:var(--ink);
+  box-shadow:0 12px 32px rgba(184,150,90,0.12);
+}
+.cat-tab-num {
+  font-family:'DM Sans',sans-serif;
+  font-size:0.68rem; letter-spacing:.18em; color:var(--gold);
+  opacity:0.8;
+}
+.cat-tab-label {
+  font-size:clamp(14px,1.5vw,17px);
+  font-weight:400; color:inherit;
+  line-height:1.3;
+}
+.cat-tab-en {
+  font-family:'DM Sans',sans-serif;
+  font-size:0.68rem; letter-spacing:.12em;
+  color:rgba(184,150,90,0.6);
+  margin-top:auto;
+}
+.cat-tab-badge {
+  position:absolute; top:14px; right:14px;
+  background:var(--gold); color:var(--ink);
+  font-family:'DM Sans',sans-serif;
+  font-size:9px; font-weight:700; letter-spacing:.1em;
+  padding:3px 7px; border-radius:20px;
+}
+.cat-tab-arrow {
+  position:absolute; bottom:14px; right:16px;
+  font-size:12px; color:var(--gold); opacity:0;
+  transition:opacity .2s, transform .3s;
+}
+.cat-tab.open .cat-tab-arrow { opacity:1; transform:rotate(90deg); }
+.cat-tab:hover .cat-tab-arrow { opacity:0.5; }
+
+/* ── 카테고리 패널 (콘텐츠 영역) ── */
+.cat-panel {
+  display:none;
+  overflow:hidden;
+}
+.cat-panel.open {
+  display:block;
+  animation:catPanelIn .35s cubic-bezier(.25,.46,.45,.94);
+}
+@keyframes catPanelIn {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.cat-panel-inner {
+  padding-top:40px;
+  border-top:1px solid rgba(184,150,90,0.15);
+  margin-top:28px;
+}
 
 /* ── 카테고리 2·3용 — 카카오 연결 카드 ── */
 .coop-card-grid {
@@ -1892,21 +1957,32 @@ async function saveToFirebase(payload) {
       <span style="font-size:12px;color:rgba(107,102,96,0.7);letter-spacing:1px;">Experiences · Village · Nature — all connected in Gapyeong</span></p>
     </div>
 
-    <!-- ── 카테고리 탭 ── -->
-    <div class="cat-tabs reveal">
-      <button class="cat-tab active" onclick="switchCat('exp')">
-        <span class="cat-tab-num">01</span>체험 프로그램
+    <!-- ── 카테고리 탭 (초기: 탭 카드만 표시, 콘텐츠 숨김) ── -->
+    <div class="cat-tabs reveal" id="cat-tabs-wrap">
+      <button class="cat-tab" id="tab-btn-exp" onclick="switchCat('exp')">
+        <span class="cat-tab-num">01</span>
+        <span class="cat-tab-label">체험 프로그램</span>
+        <span class="cat-tab-en">EXPERIENCES</span>
+        <span class="cat-tab-badge">추천</span>
+        <span class="cat-tab-arrow">›</span>
       </button>
-      <button class="cat-tab" onclick="switchCat('coop')">
-        <span class="cat-tab-num">02</span>온마을 가맹점
+      <button class="cat-tab" id="tab-btn-coop" onclick="switchCat('coop')">
+        <span class="cat-tab-num">02</span>
+        <span class="cat-tab-label">온마을 가맹점</span>
+        <span class="cat-tab-en">VILLAGE SHOPS</span>
+        <span class="cat-tab-arrow">›</span>
       </button>
-      <button class="cat-tab" onclick="switchCat('suwon')">
-        <span class="cat-tab-num">03</span>아침고요 수목원 &amp; 동물원
+      <button class="cat-tab" id="tab-btn-suwon" onclick="switchCat('suwon')">
+        <span class="cat-tab-num">03</span>
+        <span class="cat-tab-label">아침고요<br>수목원 &amp; 동물원</span>
+        <span class="cat-tab-en">MORNINGCALM</span>
+        <span class="cat-tab-arrow">›</span>
       </button>
     </div>
 
     <!-- ══ 카테고리 01: 체험 프로그램 ══ -->
-    <div class="cat-panel active" id="cat-exp">
+    <div class="cat-panel" id="cat-exp">
+    <div class="cat-panel-inner">
     <div class="exp-grid">
 
       <!-- 01 먹다 -->
@@ -2353,10 +2429,12 @@ async function saveToFirebase(payload) {
         아침고요 푸른마을 체험 상세 안내 →
       </a>
     </div>
+    </div><!-- /cat-panel-inner -->
     </div><!-- /cat-exp -->
 
     <!-- ══ 카테고리 02: 온마을 가맹점 ══ -->
     <div class="cat-panel" id="cat-coop">
+    <div class="cat-panel-inner">
       <p class="sec-sub reveal" style="margin-bottom:32px;">
         마을 전체가 당신의 호텔입니다. 카페·식당·공방·숙박까지 온마을 가맹점에서 스테이패스 혜택을 누리세요.<br>
         <span style="font-size:12px;color:rgba(107,102,96,0.7);">Enjoy StayPass benefits at every member shop in the village.</span>
@@ -2414,10 +2492,12 @@ async function saveToFirebase(payload) {
       <div style="text-align:center;padding:16px 0;font-size:12px;color:rgba(107,102,96,0.6);">
         온마을 스테이패스 보유 시 전 가맹점 할인 혜택 적용 · 등급에 따라 5~20% 할인
       </div>
+    </div><!-- /cat-panel-inner -->
     </div><!-- /cat-coop -->
 
     <!-- ══ 카테고리 03: 아침고요 수목원 & 동물원 ══ -->
     <div class="cat-panel" id="cat-suwon">
+    <div class="cat-panel-inner">
       <p class="sec-sub reveal" style="margin-bottom:32px;">
         온마을 스테이패스로 아침고요수목원 입장 할인 혜택을 받으세요. 수목원에서 온마을로, 마을이 하나로 이어집니다.<br>
         <span style="font-size:12px;color:rgba(107,102,96,0.7);">StayPass holders enjoy discounts at Morningcalm Garden &amp; Zoo.</span>
@@ -2453,6 +2533,7 @@ async function saveToFirebase(payload) {
           스테이패스 발급 후 수목원 방문 시 할인 적용 예정 · 업데이트 알림은 카카오채널 <span style="color:var(--gold-pale);">@온마을가평</span> 구독
         </p>
       </div>
+    </div><!-- /cat-panel-inner -->
     </div><!-- /cat-suwon -->
 
   </div>
@@ -2592,22 +2673,35 @@ async function saveToFirebase(payload) {
 </footer>
 
 <script>
-// ── 카테고리 탭 전환 ──
+// ── 카테고리 탭 전환 (토글 + 스크롤) ──
+const CAT_IDS = ['exp','coop','suwon'];  // 확장 시 여기에만 추가
+
 function switchCat(cat) {
-  // 탭 활성화
-  document.querySelectorAll('.cat-tab').forEach((btn, i) => {
-    btn.classList.toggle('active', ['exp','coop','suwon'][i] === cat);
+  const isAlreadyOpen = document.getElementById('cat-' + cat)?.classList.contains('open');
+
+  // 모든 탭 + 패널 닫기
+  CAT_IDS.forEach(id => {
+    const btn = document.getElementById('tab-btn-' + id);
+    const panel = document.getElementById('cat-' + id);
+    if(btn)   btn.classList.remove('open');
+    if(panel) panel.classList.remove('open');
   });
-  // 패널 활성화
-  ['exp','coop','suwon'].forEach(id => {
-    const el = document.getElementById('cat-' + id);
-    if (el) el.classList.toggle('active', id === cat);
-  });
-  // 네비 예약하기 링크 업데이트
-  const reserveLinks = document.querySelectorAll('.topnav-reserve');
-  reserveLinks.forEach(a => {
-    a.href = cat === 'exp' ? '#experiences' : '#experiences';
-  });
+
+  // 같은 탭 다시 클릭 → 닫기 (토글)
+  if(isAlreadyOpen) return;
+
+  // 선택 탭 열기
+  const activeBtn   = document.getElementById('tab-btn-' + cat);
+  const activePanel = document.getElementById('cat-' + cat);
+  if(activeBtn)   activeBtn.classList.add('open');
+  if(activePanel) activePanel.classList.add('open');
+
+  // 패널 영역으로 부드럽게 스크롤
+  if(activePanel) {
+    setTimeout(() => {
+      activePanel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    }, 50);
+  }
 }
 
 // NAV scroll effect
