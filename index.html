@@ -1277,6 +1277,26 @@ body.has-weather .hero-content { padding-top: 136px; }
   display:grid; grid-template-columns:repeat(2,1fr); gap:24px;
   margin-bottom:40px;
 }
+/* 업종 필터 탭 */
+.genre-tabs {
+  display:flex; flex-wrap:wrap; gap:8px;
+  margin-bottom:28px;
+}
+.genre-tab {
+  padding:8px 18px; border:1.5px solid rgba(184,150,90,0.3);
+  border-radius:20px; background:#fff;
+  font-family:'Noto Serif KR',serif; font-size:0.82rem;
+  color:#5a544e; cursor:pointer;
+  transition:all .2s;
+}
+.genre-tab:hover { border-color:var(--gold); color:#1a1714; }
+.genre-tab.active {
+  background:var(--gold,#b8966a); border-color:var(--gold,#b8966a);
+  color:#fff; font-weight:600;
+}
+/* 카드 숨김 애니메이션 */
+.coop-card { transition:opacity .25s, transform .25s; }
+.coop-card.hidden { display:none; }
 .coop-card {
   background:#fff; border-radius:14px;
   overflow:hidden; text-decoration:none;
@@ -2450,56 +2470,85 @@ async function saveToFirebase(payload) {
     <!-- ══ 카테고리 02: 온마을 가맹점 ══ -->
     <div class="cat-panel" id="cat-coop">
     <div class="cat-panel-inner">
-      <p class="sec-sub reveal" style="margin-bottom:32px;color:#2e2a26;">
+      <p class="sec-sub reveal" style="margin-bottom:24px;color:#2e2a26;">
         마을 전체가 당신의 호텔입니다. 카페·식당·공방·숙박까지 온마을 가맹점에서 스테이패스 혜택을 누리세요.<br>
         <span style="font-size:12px;color:rgba(107,102,96,0.7);">Enjoy StayPass benefits at every member shop in the village.</span>
       </p>
-      <div class="coop-card-grid reveal">
-        <div class="coop-card">
+
+      <!-- 업종 필터 탭 -->
+      <div class="genre-tabs reveal" id="genre-tabs">
+        <button class="genre-tab active" onclick="filterCoop('all')">전체</button>
+        <button class="genre-tab" onclick="filterCoop('restaurant')">🍽 식당</button>
+        <button class="genre-tab" onclick="filterCoop('cafe')">☕ 카페</button>
+        <button class="genre-tab" onclick="filterCoop('stay')">🏡 숙박</button>
+        <button class="genre-tab" onclick="filterCoop('mart')">🛒 마트</button>
+        <button class="genre-tab" onclick="filterCoop('craft')">🎨 공방</button>
+      </div>
+
+      <div class="coop-card-grid reveal" id="coop-card-grid">
+        <div class="coop-card" data-cat="restaurant">
+          <img class="coop-card-img" src="images/img_cat_coop.jpg" alt="마을 다이닝">
+          <div class="coop-card-body">
+            <span class="coop-card-en">DINING</span>
+            <div class="coop-card-name">마을 다이닝</div>
+            <p class="coop-card-desc">제철 재료와 잣을 활용한 가평 향토 요리. 예약제 운영. 단체 케이터링 가능.</p>
+            <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" class="coop-card-btn">
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg> 카카오톡으로 예약 문의
+            </a>
+          </div>
+        </div>
+        <div class="coop-card" data-cat="cafe">
           <img class="coop-card-img" src="images/img_02.jpg" alt="자카란다 카페">
           <div class="coop-card-body">
             <span class="coop-card-en">CAFE</span>
             <div class="coop-card-name">자카란다 카페</div>
-            <p class="coop-card-desc">수목원로 311 힐링숲 품에서 즐기는 스페셜티 커피와 잣 디저트. 테라스에서 바라보는 잣나무 숲 전망.</p>
+            <p class="coop-card-desc">힐링숲 품에서 즐기는 스페셜티 커피와 잣 디저트. 테라스에서 바라보는 잣나무 숲 전망.</p>
             <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" class="coop-card-btn">
-              <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg>
-              카카오톡으로 문의하기
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg> 카카오톡으로 문의하기
             </a>
           </div>
         </div>
-        <div class="coop-card">
+        <div class="coop-card" data-cat="cafe">
           <img class="coop-card-img" src="images/img_03.jpg" alt="온더락 카페">
           <div class="coop-card-body">
             <span class="coop-card-en">CAFE · BAR</span>
             <div class="coop-card-name">온더락 카페</div>
             <p class="coop-card-desc">힐링숲 자락에 자리한 카페 바. 낮에는 커피, 저녁엔 칵테일과 함께 가평의 밤을 즐기는 공간.</p>
             <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" class="coop-card-btn">
-              <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg>
-              카카오톡으로 문의하기
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg> 카카오톡으로 문의하기
             </a>
           </div>
         </div>
-        <div class="coop-card">
-          <img class="coop-card-img" src="images/img_04.jpg" alt="힐링숲 펜션">
+        <div class="coop-card" data-cat="stay">
+          <img class="coop-card-img" src="images/img_04.jpg" alt="힐링숲 스테이">
           <div class="coop-card-body">
             <span class="coop-card-en">STAY</span>
             <div class="coop-card-name">힐링숲 스테이</div>
             <p class="coop-card-desc">잣나무 숲 속 프라이빗 펜션. 체크인 15:00 / 체크아웃 11:00. 체험 연계 패키지 상품 운영.</p>
             <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" class="coop-card-btn">
-              <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg>
-              카카오톡으로 예약 문의
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg> 카카오톡으로 예약 문의
             </a>
           </div>
         </div>
-        <div class="coop-card">
-          <img class="coop-card-img" src="images/img_05.jpg" alt="마을 식당">
+        <div class="coop-card" data-cat="mart">
+          <img class="coop-card-img" src="images/img_05.jpg" alt="마을 편의점">
           <div class="coop-card-body">
-            <span class="coop-card-en">DINING</span>
-            <div class="coop-card-name">마을 다이닝</div>
-            <p class="coop-card-desc">제철 재료와 잣을 활용한 가평 향토 요리. 예약제 운영. 단체 케이터링 가능.</p>
+            <span class="coop-card-en">MART</span>
+            <div class="coop-card-name">마을 편의점</div>
+            <p class="coop-card-desc">온마을 방문객을 위한 생필품·로컬 특산품·잣 가공식품 판매. 스테이패스 할인 적용.</p>
             <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" class="coop-card-btn">
-              <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg>
-              카카오톡으로 예약 문의
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg> 카카오톡으로 문의하기
+            </a>
+          </div>
+        </div>
+        <div class="coop-card" data-cat="craft">
+          <img class="coop-card-img" src="images/img_cat_exp.png" alt="힐링숲 공방">
+          <div class="coop-card-body">
+            <span class="coop-card-en">CRAFT</span>
+            <div class="coop-card-name">힐링숲 공방</div>
+            <p class="coop-card-desc">다육아트·캔들·비누·테라리움 공방 체험. 나만의 작품을 만들고 기념으로 가져가세요.</p>
+            <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" class="coop-card-btn">
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg> 카카오톡으로 예약 문의
             </a>
           </div>
         </div>
@@ -2688,6 +2737,20 @@ async function saveToFirebase(payload) {
 </footer>
 
 <script>
+// ── 가맹점 업종 필터 ──
+function filterCoop(cat) {
+  // 탭 활성화
+  document.querySelectorAll('.genre-tab').forEach(btn => {
+    const isCat = btn.getAttribute('onclick').includes("'" + cat + "'");
+    btn.classList.toggle('active', isCat);
+  });
+  // 카드 필터
+  document.querySelectorAll('#coop-card-grid .coop-card').forEach(card => {
+    const cardCat = card.dataset.cat;
+    card.classList.toggle('hidden', cat !== 'all' && cardCat !== cat);
+  });
+}
+
 // ── 카테고리 탭 전환 (토글 + 스크롤) ──
 const CAT_IDS = ['exp','coop','suwon'];  // 확장 시 여기에만 추가
 
