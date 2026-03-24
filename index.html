@@ -1163,6 +1163,70 @@ body.has-weather .hero-content { padding-top: 136px; }
 .exp-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:3px; }
 .exp-grid .exp-inline-drawer { grid-column: 1 / -1; }
 
+/* ── 카테고리 탭 ── */
+.cat-tabs {
+  display:flex; gap:0; margin-bottom:40px;
+  border-bottom:2px solid rgba(184,150,90,0.2);
+  overflow-x:auto; -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.cat-tabs::-webkit-scrollbar { display:none; }
+.cat-tab {
+  flex-shrink:0; padding:14px 28px; border:none; background:none;
+  font-family:'Noto Serif KR',serif; font-weight:300;
+  font-size:clamp(13px,1.4vw,15px); color:var(--fog);
+  cursor:pointer; position:relative; white-space:nowrap;
+  transition:color .25s;
+}
+.cat-tab::after {
+  content:''; position:absolute; bottom:-2px; left:0; right:0; height:2px;
+  background:var(--gold); transform:scaleX(0); transition:transform .3s;
+}
+.cat-tab.active { color:var(--ink); font-weight:400; }
+.cat-tab.active::after { transform:scaleX(1); }
+.cat-tab-num {
+  display:inline-block; font-family:'DM Sans',sans-serif;
+  font-size:0.65em; letter-spacing:.15em; color:var(--gold);
+  margin-right:6px; vertical-align:middle;
+}
+
+/* ── 카테고리 패널 ── */
+.cat-panel { display:none; }
+.cat-panel.active { display:block; }
+
+/* ── 카테고리 2·3용 — 카카오 연결 카드 ── */
+.coop-card-grid {
+  display:grid; grid-template-columns:repeat(2,1fr); gap:24px;
+  margin-bottom:40px;
+}
+.coop-card {
+  background:var(--stone,#F7F5F0); border-radius:14px;
+  overflow:hidden; text-decoration:none;
+  transition:transform .25s, box-shadow .25s;
+}
+.coop-card:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,.08); }
+.coop-card-img {
+  width:100%; height:180px; object-fit:cover;
+}
+.coop-card-body { padding:20px 22px 24px; }
+.coop-card-name {
+  font-family:'Noto Serif KR',serif; font-weight:300;
+  font-size:1.05rem; color:var(--ink); margin-bottom:4px;
+}
+.coop-card-en { font-family:'DM Sans',sans-serif; font-size:0.72rem;
+  letter-spacing:.15em; color:var(--gold); margin-bottom:10px; display:block; }
+.coop-card-desc { font-size:0.82rem; color:var(--fog); line-height:1.8; }
+.coop-card-btn {
+  display:inline-flex; align-items:center; gap:8px;
+  margin-top:14px; font-size:0.8rem; letter-spacing:.1em;
+  color:var(--gold); text-decoration:none;
+  border-bottom:1px solid rgba(184,150,90,.4); padding-bottom:2px;
+}
+@media(max-width:680px){
+  .coop-card-grid { grid-template-columns:1fr; }
+  .cat-tab { padding:12px 18px; }
+}
+
 /* ── 예약 신청하기 버튼 ── */
 .btn-exp-reserve {
   display: block;
@@ -1824,9 +1888,25 @@ async function saveToFirebase(payload) {
     <div class="exp-header reveal">
       <span class="sec-eyebrow">EXPER<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 24" style="width:2em;height:1.1em;vertical-align:middle;margin:0 0.5em;display:inline-block;"><rect x="1" y="1" width="42" height="22" rx="11" fill="none" stroke="rgba(184,150,90,0.6)" stroke-width="1.5"/><circle cx="14" cy="12" r="8" fill="rgba(184,150,90,0.85)"/></svg>IENCES</span>
       <h2 class="sec-title">온마을의 경험 <em style="font-size:clamp(16px,2vw,22px);letter-spacing:2px;">Experiences</em></h2>
-      <p class="sec-sub">축령산 힐링숲에서 직접 수확한 잣으로 만들고, 느끼고, 함께하는 마을의 시간.<br>
-      <span style="font-size:12px;color:rgba(107,102,96,0.7);letter-spacing:1px;">Make · Feel · Be together — in the village of Gapyeong</span></p>
+      <p class="sec-sub">체험·가맹점·수목원까지 — 온마을이 연결하는 가평의 모든 시간.<br>
+      <span style="font-size:12px;color:rgba(107,102,96,0.7);letter-spacing:1px;">Experiences · Village · Nature — all connected in Gapyeong</span></p>
     </div>
+
+    <!-- ── 카테고리 탭 ── -->
+    <div class="cat-tabs reveal">
+      <button class="cat-tab active" onclick="switchCat('exp')">
+        <span class="cat-tab-num">01</span>체험 프로그램
+      </button>
+      <button class="cat-tab" onclick="switchCat('coop')">
+        <span class="cat-tab-num">02</span>온마을 가맹점
+      </button>
+      <button class="cat-tab" onclick="switchCat('suwon')">
+        <span class="cat-tab-num">03</span>아침고요 수목원 &amp; 동물원
+      </button>
+    </div>
+
+    <!-- ══ 카테고리 01: 체험 프로그램 ══ -->
+    <div class="cat-panel active" id="cat-exp">
     <div class="exp-grid">
 
       <!-- 01 먹다 -->
@@ -2262,18 +2342,118 @@ async function saveToFirebase(payload) {
       </div>
 
     </div>
-
     <!-- 체험 안내 공통 정보 -->
-    <div class="exp-info reveal" style="margin-top:56px;padding:36px 40px;background:rgba(184,150,90,0.06);border:1px solid rgba(184,150,90,0.15);text-align:center;">
-      <p style="font-family:'Noto Serif KR',serif;font-weight:300;font-size:0.9rem;color:var(--fog);line-height:2;letter-spacing:0.04em;">
+    <div class="exp-info reveal" style="margin-top:40px;padding:28px 32px;background:rgba(184,150,90,0.06);border:1px solid rgba(184,150,90,0.15);text-align:center;">
+      <p style="font-family:'Noto Serif KR',serif;font-weight:300;font-size:0.85rem;color:var(--fog);line-height:2;letter-spacing:0.04em;">
         모든 체험은 <span style="color:var(--gold-pale);">사전 예약제</span>로 운영됩니다 &nbsp;·&nbsp; 대상: 누구나 (일부 초등학생 이상) &nbsp;·&nbsp; 운영기간: 연중<br>
         자세한 프로그램 안내 및 예약 문의: <span style="color:var(--gold-pale);">카카오톡 채널 온마을가평</span>
       </p>
       <a href="https://morningcalmgreenvillage.co.kr/231227_html/index.html#Main" target="_blank"
-         style="display:inline-block;margin-top:20px;font-family:'DM Sans',sans-serif;font-size:0.78rem;letter-spacing:0.14em;color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(184,150,90,0.4);padding-bottom:2px;">
+         style="display:inline-block;margin-top:16px;font-family:'DM Sans',sans-serif;font-size:0.78rem;letter-spacing:0.14em;color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(184,150,90,0.4);padding-bottom:2px;">
         아침고요 푸른마을 체험 상세 안내 →
       </a>
     </div>
+    </div><!-- /cat-exp -->
+
+    <!-- ══ 카테고리 02: 온마을 가맹점 ══ -->
+    <div class="cat-panel" id="cat-coop">
+      <p class="sec-sub reveal" style="margin-bottom:32px;">
+        마을 전체가 당신의 호텔입니다. 카페·식당·공방·숙박까지 온마을 가맹점에서 스테이패스 혜택을 누리세요.<br>
+        <span style="font-size:12px;color:rgba(107,102,96,0.7);">Enjoy StayPass benefits at every member shop in the village.</span>
+      </p>
+      <div class="coop-card-grid reveal">
+        <div class="coop-card">
+          <img class="coop-card-img" src="images/img_02.jpg" alt="자카란다 카페">
+          <div class="coop-card-body">
+            <span class="coop-card-en">CAFE</span>
+            <div class="coop-card-name">자카란다 카페</div>
+            <p class="coop-card-desc">수목원로 311 힐링숲 품에서 즐기는 스페셜티 커피와 잣 디저트. 테라스에서 바라보는 잣나무 숲 전망.</p>
+            <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" class="coop-card-btn">
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg>
+              카카오톡으로 문의하기
+            </a>
+          </div>
+        </div>
+        <div class="coop-card">
+          <img class="coop-card-img" src="images/img_03.jpg" alt="온더락 카페">
+          <div class="coop-card-body">
+            <span class="coop-card-en">CAFE · BAR</span>
+            <div class="coop-card-name">온더락 카페</div>
+            <p class="coop-card-desc">힐링숲 자락에 자리한 카페 바. 낮에는 커피, 저녁엔 칵테일과 함께 가평의 밤을 즐기는 공간.</p>
+            <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" class="coop-card-btn">
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg>
+              카카오톡으로 문의하기
+            </a>
+          </div>
+        </div>
+        <div class="coop-card">
+          <img class="coop-card-img" src="images/img_04.jpg" alt="힐링숲 펜션">
+          <div class="coop-card-body">
+            <span class="coop-card-en">STAY</span>
+            <div class="coop-card-name">힐링숲 스테이</div>
+            <p class="coop-card-desc">잣나무 숲 속 프라이빗 펜션. 체크인 15:00 / 체크아웃 11:00. 체험 연계 패키지 상품 운영.</p>
+            <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" class="coop-card-btn">
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg>
+              카카오톡으로 예약 문의
+            </a>
+          </div>
+        </div>
+        <div class="coop-card">
+          <img class="coop-card-img" src="images/img_05.jpg" alt="마을 식당">
+          <div class="coop-card-body">
+            <span class="coop-card-en">DINING</span>
+            <div class="coop-card-name">마을 다이닝</div>
+            <p class="coop-card-desc">제철 재료와 잣을 활용한 가평 향토 요리. 예약제 운영. 단체 케이터링 가능.</p>
+            <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" class="coop-card-btn">
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg>
+              카카오톡으로 예약 문의
+            </a>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;padding:16px 0;font-size:12px;color:rgba(107,102,96,0.6);">
+        온마을 스테이패스 보유 시 전 가맹점 할인 혜택 적용 · 등급에 따라 5~20% 할인
+      </div>
+    </div><!-- /cat-coop -->
+
+    <!-- ══ 카테고리 03: 아침고요 수목원 & 동물원 ══ -->
+    <div class="cat-panel" id="cat-suwon">
+      <p class="sec-sub reveal" style="margin-bottom:32px;">
+        온마을 스테이패스로 아침고요수목원 입장 할인 혜택을 받으세요. 수목원에서 온마을로, 마을이 하나로 이어집니다.<br>
+        <span style="font-size:12px;color:rgba(107,102,96,0.7);">StayPass holders enjoy discounts at Morningcalm Garden &amp; Zoo.</span>
+      </p>
+      <div class="coop-card-grid reveal">
+        <div class="coop-card">
+          <img class="coop-card-img" src="images/img_01.png" alt="아침고요수목원">
+          <div class="coop-card-body">
+            <span class="coop-card-en">GARDEN</span>
+            <div class="coop-card-name">아침고요수목원</div>
+            <p class="coop-card-desc">축령산 자락 5,000여 평, 20개 이상의 테마 정원. 계절마다 달라지는 꽃과 나무의 향연.<br>온마을 스테이패스 제시 시 입장 할인 (MOU 협약 예정)</p>
+            <a href="https://www.morningcalm.co.kr" target="_blank" rel="noopener" class="coop-card-btn">
+              공식 홈페이지 →
+            </a>
+          </div>
+        </div>
+        <div class="coop-card">
+          <img class="coop-card-img" src="images/img_02.jpg" alt="아침고요 동물원">
+          <div class="coop-card-body">
+            <span class="coop-card-en">ZOO</span>
+            <div class="coop-card-name">아침고요 동물원</div>
+            <p class="coop-card-desc">수목원 인근 가족 친화형 동물원. 어린이와 함께하는 자연 체험의 완성.<br>온마을 패키지 연계 방문 가능</p>
+            <a href="http://pf.kakao.com/_FVxjZX/chat" target="_blank" class="coop-card-btn">
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="8" rx="8" ry="7" fill="#3A1D1D"/><path d="M9 3.5C5.96 3.5 3.5 5.46 3.5 7.88c0 1.5 1 2.82 2.56 3.62l-.6 2.2c-.04.17.13.31.28.22l2.75-1.83c.32.05.66.08 1.01.08 3.04 0 5.5-1.96 5.5-4.38S12.04 3.5 9 3.5z" fill="#FEE500"/></svg>
+              패키지 문의하기
+            </a>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;padding:20px;background:rgba(184,150,90,0.05);border-radius:12px;border:1px solid rgba(184,150,90,0.15);margin-top:8px;">
+        <p style="font-size:0.82rem;color:var(--fog);line-height:2;">
+          🌿 온마을 ↔ 아침고요수목원 상호 할인 협약 추진 중<br>
+          스테이패스 발급 후 수목원 방문 시 할인 적용 예정 · 업데이트 알림은 카카오채널 <span style="color:var(--gold-pale);">@온마을가평</span> 구독
+        </p>
+      </div>
+    </div><!-- /cat-suwon -->
 
   </div>
 </section>
@@ -2412,6 +2592,24 @@ async function saveToFirebase(payload) {
 </footer>
 
 <script>
+// ── 카테고리 탭 전환 ──
+function switchCat(cat) {
+  // 탭 활성화
+  document.querySelectorAll('.cat-tab').forEach((btn, i) => {
+    btn.classList.toggle('active', ['exp','coop','suwon'][i] === cat);
+  });
+  // 패널 활성화
+  ['exp','coop','suwon'].forEach(id => {
+    const el = document.getElementById('cat-' + id);
+    if (el) el.classList.toggle('active', id === cat);
+  });
+  // 네비 예약하기 링크 업데이트
+  const reserveLinks = document.querySelectorAll('.topnav-reserve');
+  reserveLinks.forEach(a => {
+    a.href = cat === 'exp' ? '#experiences' : '#experiences';
+  });
+}
+
 // NAV scroll effect
 const nav = document.getElementById('topnav');
 window.addEventListener('scroll', () => {
