@@ -1171,6 +1171,7 @@ body.has-weather .hero-content { padding-top: 136px; }
   margin-bottom:0;
   padding-bottom:0;
   border-bottom:none;
+  align-items:stretch;
 }
 /* 4탭 이상 자동 대응 */
 .cat-tabs.has-4 { grid-template-columns: repeat(4, 1fr); }
@@ -1187,54 +1188,66 @@ body.has-weather .hero-content { padding-top: 136px; }
 
 .cat-tab {
   display:flex; flex-direction:column; align-items:flex-start;
-  gap:10px; padding:24px 22px 22px;
-  border:1.5px solid rgba(184,150,90,0.2);
-  border-radius:14px;
-  background:rgba(250,247,242,0.04);
+  gap:10px; padding:32px 28px 28px;
+  border:none;
+  border-radius:16px;
+  background:#3a3530 center/cover no-repeat;
   font-family:'Noto Serif KR',serif; font-weight:300;
-  font-size:clamp(14px,1.5vw,16px); color:var(--fog);
-  cursor:pointer; position:relative;
+  font-size:clamp(14px,1.5vw,16px); color:#fff;
+  cursor:pointer; position:relative; overflow:hidden;
   text-align:left; white-space:normal;
-  transition:all .3s cubic-bezier(.25,.46,.45,.94);
+  min-height:220px;
+  transition:all .35s cubic-bezier(.25,.46,.45,.94);
 }
+/* 오버레이 */
+.cat-tab::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(160deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.62) 100%);
+  border-radius:16px;
+  transition:background .35s;
+  z-index:0;
+}
+.cat-tab:hover::before { background:linear-gradient(160deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.5) 100%); }
+.cat-tab.open::before  { background:linear-gradient(160deg, rgba(184,150,90,0.25) 0%, rgba(0,0,0,0.55) 100%); }
+.cat-tab > * { position:relative; z-index:1; }
 .cat-tab:hover {
-  border-color:rgba(184,150,90,0.55);
-  background:rgba(184,150,90,0.06);
-  color:var(--ink);
-  transform:translateY(-3px);
+  transform:translateY(-4px) scale(1.01);
+  box-shadow:0 20px 48px rgba(0,0,0,0.28);
+  color:#fff;
 }
 .cat-tab.open {
-  border-color:var(--gold);
-  background:rgba(184,150,90,0.08);
-  color:var(--ink);
-  box-shadow:0 12px 32px rgba(184,150,90,0.12);
+  outline:2px solid #e8c97a;
+  outline-offset:-2px;
+  box-shadow:0 16px 40px rgba(184,150,90,0.25);
+  color:#fff;
 }
 .cat-tab-num {
   font-family:'DM Sans',sans-serif;
-  font-size:0.68rem; letter-spacing:.18em; color:var(--gold);
-  opacity:0.8;
+  font-size:0.68rem; letter-spacing:.18em; color:#e8c97a;
+  opacity:1; text-shadow:0 1px 3px rgba(0,0,0,0.4);
 }
 .cat-tab-label {
-  font-size:clamp(14px,1.5vw,17px);
-  font-weight:400; color:inherit;
+  font-size:clamp(16px,1.8vw,20px);
+  font-weight:600; color:#fff;
   line-height:1.3;
+  text-shadow:0 2px 8px rgba(0,0,0,0.5);
 }
 .cat-tab-en {
   font-family:'DM Sans',sans-serif;
   font-size:0.68rem; letter-spacing:.12em;
-  color:rgba(184,150,90,0.6);
+  color:#e8c97a;
   margin-top:auto;
 }
 .cat-tab-badge {
-  position:absolute; top:14px; right:14px;
-  background:var(--gold); color:var(--ink);
+  position:absolute; top:14px; right:14px; z-index:2;
+  background:#e8c97a; color:#1a1714;
   font-family:'DM Sans',sans-serif;
   font-size:9px; font-weight:700; letter-spacing:.1em;
   padding:3px 7px; border-radius:20px;
 }
 .cat-tab-arrow {
-  position:absolute; bottom:14px; right:16px;
-  font-size:12px; color:var(--gold); opacity:0;
+  position:absolute; bottom:14px; right:16px; z-index:1;
+  font-size:14px; color:#e8c97a; opacity:0;
   transition:opacity .2s, transform .3s;
 }
 .cat-tab.open .cat-tab-arrow { opacity:1; transform:rotate(90deg); }
@@ -1265,27 +1278,29 @@ body.has-weather .hero-content { padding-top: 136px; }
   margin-bottom:40px;
 }
 .coop-card {
-  background:var(--stone,#F7F5F0); border-radius:14px;
+  background:#fff; border-radius:14px;
   overflow:hidden; text-decoration:none;
+  border:1px solid rgba(0,0,0,0.07);
   transition:transform .25s, box-shadow .25s;
 }
-.coop-card:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,.08); }
+.coop-card:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,.1); }
 .coop-card-img {
-  width:100%; height:180px; object-fit:cover;
+  width:100%; height:200px; object-fit:cover;
+  display:block; background:#e8e4de;
 }
-.coop-card-body { padding:20px 22px 24px; }
+.coop-card-body { padding:20px 22px 24px; background:#fff; }
 .coop-card-name {
-  font-family:'Noto Serif KR',serif; font-weight:300;
-  font-size:1.05rem; color:var(--ink); margin-bottom:4px;
+  font-family:'Noto Serif KR',serif; font-weight:400;
+  font-size:1.05rem; color:#1a1714; margin-bottom:4px;
 }
-.coop-card-en { font-family:'DM Sans',sans-serif; font-size:0.72rem;
-  letter-spacing:.15em; color:var(--gold); margin-bottom:10px; display:block; }
-.coop-card-desc { font-size:0.82rem; color:var(--fog); line-height:1.8; }
+.coop-card-en { font-family:'DM Sans',sans-serif; font-size:0.7rem;
+  letter-spacing:.18em; color:#b8966a; margin-bottom:10px; display:block; font-weight:600; }
+.coop-card-desc { font-size:0.83rem; color:#3d3830; line-height:1.85; }
 .coop-card-btn {
   display:inline-flex; align-items:center; gap:8px;
   margin-top:14px; font-size:0.8rem; letter-spacing:.1em;
-  color:var(--gold); text-decoration:none;
-  border-bottom:1px solid rgba(184,150,90,.4); padding-bottom:2px;
+  color:#b8966a; text-decoration:none; font-weight:500;
+  border-bottom:1px solid rgba(184,150,90,.5); padding-bottom:2px;
 }
 @media(max-width:680px){
   .coop-card-grid { grid-template-columns:1fr; }
@@ -1959,20 +1974,20 @@ async function saveToFirebase(payload) {
 
     <!-- ── 카테고리 탭 (초기: 탭 카드만 표시, 콘텐츠 숨김) ── -->
     <div class="cat-tabs reveal" id="cat-tabs-wrap">
-      <button class="cat-tab" id="tab-btn-exp" onclick="switchCat('exp')">
+      <button class="cat-tab" id="tab-btn-exp" onclick="switchCat('exp')" style="background-image:url('images/img_cat_exp.png');">
         <span class="cat-tab-num">01</span>
         <span class="cat-tab-label">체험 프로그램</span>
         <span class="cat-tab-en">EXPERIENCES</span>
         <span class="cat-tab-badge">추천</span>
         <span class="cat-tab-arrow">›</span>
       </button>
-      <button class="cat-tab" id="tab-btn-coop" onclick="switchCat('coop')">
+      <button class="cat-tab" id="tab-btn-coop" onclick="switchCat('coop')" style="background-image:url('images/img_cat_coop.jpg');">
         <span class="cat-tab-num">02</span>
         <span class="cat-tab-label">온마을 가맹점</span>
         <span class="cat-tab-en">VILLAGE SHOPS</span>
         <span class="cat-tab-arrow">›</span>
       </button>
-      <button class="cat-tab" id="tab-btn-suwon" onclick="switchCat('suwon')">
+      <button class="cat-tab" id="tab-btn-suwon" onclick="switchCat('suwon')" style="background-image:url('images/img_cat_suwon.png');">
         <span class="cat-tab-num">03</span>
         <span class="cat-tab-label">아침고요<br>수목원 &amp; 동물원</span>
         <span class="cat-tab-en">MORNINGCALM</span>
@@ -2435,7 +2450,7 @@ async function saveToFirebase(payload) {
     <!-- ══ 카테고리 02: 온마을 가맹점 ══ -->
     <div class="cat-panel" id="cat-coop">
     <div class="cat-panel-inner">
-      <p class="sec-sub reveal" style="margin-bottom:32px;">
+      <p class="sec-sub reveal" style="margin-bottom:32px;color:#2e2a26;">
         마을 전체가 당신의 호텔입니다. 카페·식당·공방·숙박까지 온마을 가맹점에서 스테이패스 혜택을 누리세요.<br>
         <span style="font-size:12px;color:rgba(107,102,96,0.7);">Enjoy StayPass benefits at every member shop in the village.</span>
       </p>
@@ -2489,7 +2504,7 @@ async function saveToFirebase(payload) {
           </div>
         </div>
       </div>
-      <div style="text-align:center;padding:16px 0;font-size:12px;color:rgba(107,102,96,0.6);">
+      <div style="text-align:center;padding:16px 0;font-size:12px;color:#2e2a26;font-weight:400;">
         온마을 스테이패스 보유 시 전 가맹점 할인 혜택 적용 · 등급에 따라 5~20% 할인
       </div>
     </div><!-- /cat-panel-inner -->
@@ -2498,13 +2513,13 @@ async function saveToFirebase(payload) {
     <!-- ══ 카테고리 03: 아침고요 수목원 & 동물원 ══ -->
     <div class="cat-panel" id="cat-suwon">
     <div class="cat-panel-inner">
-      <p class="sec-sub reveal" style="margin-bottom:32px;">
+      <p class="sec-sub reveal" style="margin-bottom:32px;color:#2e2a26;">
         온마을 스테이패스로 아침고요수목원 입장 할인 혜택을 받으세요. 수목원에서 온마을로, 마을이 하나로 이어집니다.<br>
         <span style="font-size:12px;color:rgba(107,102,96,0.7);">StayPass holders enjoy discounts at Morningcalm Garden &amp; Zoo.</span>
       </p>
       <div class="coop-card-grid reveal">
         <div class="coop-card">
-          <img class="coop-card-img" src="images/img_01.png" alt="아침고요수목원">
+          <img class="coop-card-img" src="images/img_suwon_garden.jpg" alt="아침고요수목원" style="object-position:center top;">
           <div class="coop-card-body">
             <span class="coop-card-en">GARDEN</span>
             <div class="coop-card-name">아침고요수목원</div>
@@ -2515,7 +2530,7 @@ async function saveToFirebase(payload) {
           </div>
         </div>
         <div class="coop-card">
-          <img class="coop-card-img" src="images/img_02.jpg" alt="아침고요 동물원">
+          <img class="coop-card-img" src="images/img_suwon_zoo.png" alt="아침고요 동물원" style="object-position:center center;">
           <div class="coop-card-body">
             <span class="coop-card-en">ZOO</span>
             <div class="coop-card-name">아침고요 동물원</div>
@@ -2528,7 +2543,7 @@ async function saveToFirebase(payload) {
         </div>
       </div>
       <div style="text-align:center;padding:20px;background:rgba(184,150,90,0.05);border-radius:12px;border:1px solid rgba(184,150,90,0.15);margin-top:8px;">
-        <p style="font-size:0.82rem;color:var(--fog);line-height:2;">
+        <p style="font-size:0.82rem;color:#3d3830;line-height:2;">
           🌿 온마을 ↔ 아침고요수목원 상호 할인 협약 추진 중<br>
           스테이패스 발급 후 수목원 방문 시 할인 적용 예정 · 업데이트 알림은 카카오채널 <span style="color:var(--gold-pale);">@온마을가평</span> 구독
         </p>
