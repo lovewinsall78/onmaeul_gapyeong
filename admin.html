@@ -279,6 +279,42 @@ tr:last-child td { border-bottom: none; }
   background:#FFF8E1; border:1px solid #FFD54F; border-radius:8px;
   padding:10px 12px; font-size:11px; color:#795548; margin-bottom:14px;
 }
+/* 알림 배지 */
+.notif-badge {
+  position:absolute; top:-5px; right:-5px;
+  background:#e53935; color:#fff;
+  font-size:10px; font-weight:700;
+  min-width:18px; height:18px; border-radius:9px;
+  display:flex; align-items:center; justify-content:center;
+  padding:0 4px; box-shadow:0 1px 4px rgba(0,0,0,.25);
+  pointer-events:none;
+}
+/* 알림 팝업 */
+.notif-popup-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:2000;
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.notif-popup {
+  background:#fff; border-radius:16px; width:100%; max-width:480px;
+  box-shadow:0 24px 64px rgba(0,0,0,.2); overflow:hidden;
+}
+.notif-popup-header {
+  background:var(--primary-dark); color:#fff;
+  padding:16px 20px; display:flex; align-items:center; justify-content:space-between;
+}
+.notif-popup-header h3 { font-size:15px; font-weight:700; margin:0; }
+.notif-list { max-height:360px; overflow-y:auto; }
+.notif-item {
+  padding:14px 20px; border-bottom:1px solid #f0f0f0;
+  display:flex; gap:12px; align-items:flex-start;
+}
+.notif-item.unread { background:#F0F9F4; }
+.notif-item-icon { font-size:22px; flex-shrink:0; margin-top:2px; }
+.notif-item-body { flex:1; }
+.notif-item-title { font-size:14px; font-weight:700; color:var(--primary-dark); margin-bottom:3px; }
+.notif-item-desc { font-size:12px; color:var(--text-muted); line-height:1.6; }
+.notif-item-time { font-size:11px; color:#bbb; margin-top:4px; }
+.notif-popup-footer { padding:12px 20px; display:flex; gap:8px; justify-content:flex-end; border-top:1px solid #f0f0f0; }
 
 /* ===== ROLE PERMISSIONS ===== */
 /* staff: admin-only items hidden */
@@ -579,7 +615,11 @@ body.role-viewer .perm-write { display: none !important; }
         <label>비밀번호</label>
         <input type="password" id="biz-login-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doBizLogin()">
       </div>
-      <button class="login-btn" onclick="doBizLogin()">🏪 업체 로그인</button>
+      <label style="display:flex;align-items:center;gap:6px;margin:10px 0 0;font-size:12px;color:var(--text-muted);cursor:pointer;">
+        <input type="checkbox" id="biz-auto-login" style="accent-color:var(--primary);width:14px;height:14px;">
+        이 기기에서 자동로그인
+      </label>
+      <button class="login-btn" onclick="doBizLogin()" style="margin-top:8px;">🏪 업체 로그인</button>
       <div class="login-error" id="biz-login-error"></div>
     </div>
 
@@ -595,9 +635,12 @@ body.role-viewer .perm-write { display: none !important; }
       </div>
       <button class="login-btn" style="background:var(--primary-dark);" onclick="doAdminLogin()">👑 관리자 로그인</button>
       <div class="login-error" id="admin-login-error"></div>
-      <div style="text-align:center;margin-top:8px;">
+      <div style="text-align:center;margin-top:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <button onclick="resetDefaultAccounts()" style="background:none;border:none;color:#9E9E9E;font-size:11px;cursor:pointer;text-decoration:underline;padding:4px;">
           🔑 관리자 계정 초기화
+        </button>
+        <button onclick="hardReset()" style="background:#FFEBEE;border:1px solid #FFCDD2;color:#C62828;font-size:11px;cursor:pointer;border-radius:6px;padding:4px 10px;font-weight:600;">
+          🔄 전체 초기화 (안될 때)
         </button>
       </div>
     </div>
@@ -609,10 +652,14 @@ body.role-viewer .perm-write { display: none !important; }
 
 <!-- SIDEBAR -->
 <aside id="sidebar">
-  <div class="logo">
+  <div class="logo" style="position:relative; display:flex; align-items:center; justify-content:space-between;">
     <h2>🌿 온마을 관리시스템</h2>
     <p>통합 운영 플랫폼</p>
-  </div>
+    <button id="notif-btn" onclick="openNotifPopup()" style="position:relative;background:none;border:none;cursor:pointer;padding:4px;margin-left:auto;display:none;">
+    <span style="font-size:20px;">🔔</span>
+    <span class="notif-badge" id="notif-badge" style="display:none;">0</span>
+  </button>
+</div>
   <nav>
     <a onclick="showModule('dashboard')" class="active" id="nav-dashboard">
       <span class="ico">🏠</span> 대시보드
@@ -697,6 +744,29 @@ body.role-viewer .perm-write { display: none !important; }
         <span>QR 스캔 — 스테이패스 확인</span>
       </button>
       <div class="stats-grid" id="dash-stats"></div>
+
+      <!-- ── staff 전용: 오늘 상세 + 이번달 달력 ── -->
+      <div id="dash-staff-section" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <h3>☀️ 오늘의 체험 일정</h3>
+            <span id="dash-today-date" style="font-size:12px;color:var(--text-muted);"></span>
+          </div>
+          <div class="card-body" id="dash-today-staff"></div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header">
+            <h3>📅 이번달 체험 일정</h3>
+            <span id="dash-cal-label" style="font-size:13px;color:var(--text-muted);font-weight:600;"></span>
+          </div>
+          <div class="card-body" style="padding:8px 12px;">
+            <div class="cal-grid" id="dash-mini-cal" style="font-size:12px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── admin/공통: 기존 대시보드 ── -->
+      <div id="dash-admin-section">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;" class="dash-grid">
         <div class="card">
           <div class="card-header"><h3>📅 오늘의 체험 일정</h3></div>
@@ -718,6 +788,7 @@ body.role-viewer .perm-write { display: none !important; }
         <div class="card-body" style="position:relative;height:220px;">
           <canvas id="dash-chart"></canvas>
         </div>
+      </div>
       </div>
     </div>
 
@@ -1439,17 +1510,25 @@ body.role-viewer .perm-write { display: none !important; }
           <select id="m03-customer"><option value="">-- 고객 미연결 --</option></select>
         </div>
         <div class="form-group"><label>체험프로그램</label><select id="m03-program"><option value="">선택</option></select></div>
-        <div class="form-group"><label>체험일자</label><input id="m03-date" type="date"></div>
+        <div class="form-group"><label>시작일자 *</label><input id="m03-date" type="date" onchange="onM03DateChange()"></div>
+        <div class="form-group"><label>종료일자 <span style="font-size:10px;color:var(--text-muted);">1박 이상 시 입력</span></label><input id="m03-date-end" type="date"></div>
         <div class="form-group"><label>시작시간</label><input id="m03-start" type="time"></div>
         <div class="form-group"><label>종료시간</label><input id="m03-end" type="time"></div>
+        <div class="form-group" id="m03-nights-row" style="display:none;">
+          <label>숙박 기간</label>
+          <div id="m03-nights-display" style="padding:9px 12px;background:#f0f9f4;border:1px solid var(--primary);border-radius:8px;font-size:13px;color:var(--primary-dark);font-weight:600;"></div>
+        </div>
         <div class="form-group"><label>체험인원</label><input id="m03-people" type="number" min="1" placeholder="인원수"></div>
         <div class="form-group"><label>금액 (원)</label><input id="m03-amount" type="number" min="0" placeholder="0" oninput="autoCalcAmount()"></div>
         <div class="form-group"><label>진행상태</label><select id="m03-status"><option value="">선택</option></select></div>
-        <div class="form-group"><label>담당직원</label>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <select id="m03-staff" style="flex:1;" onchange="onM03StaffChange()"><option value="">선택</option></select>
-            <button type="button" id="m03-sms-btn" class="btn btn-ghost btn-sm" style="display:none;white-space:nowrap;" onclick="openM03StaffSMS()">📱 알림</button>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>담당직원 배정 <span style="font-size:10px;color:var(--text-muted);">여러 명 가능</span></label>
+          <div id="m03-staff-rows" style="display:flex;flex-direction:column;gap:8px;">
+            <!-- 직원 행은 JS로 동적 추가 -->
           </div>
+          <button type="button" onclick="addM03StaffRow()" style="margin-top:8px;background:none;border:1.5px dashed var(--border);color:var(--text-muted);border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;width:100%;">
+            + 직원 추가
+          </button>
         </div>
         <div class="form-group"><label>승인상태</label>
           <select id="m03-approval">
@@ -1516,6 +1595,13 @@ body.role-viewer .perm-write { display: none !important; }
         <div class="form-group">
           <label>종료시간</label>
           <input id="sch-end" type="time">
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>참여 직원</label>
+          <div id="sch-staff-list" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 0;min-height:36px;">
+            <span style="color:#bbb;font-size:13px;">로딩 중...</span>
+          </div>
+          <input type="hidden" id="sch-staff-selected" value="">
         </div>
       </div>
     </div>
@@ -1860,6 +1946,11 @@ body.role-viewer .perm-write { display: none !important; }
       </div>
     </div>
     <div class="modal-footer">
+      <!-- 신규 계정만 표시 -->
+      <div id="mustchangepw-row" style="margin-right:auto;display:flex;align-items:center;gap:6px;">
+        <input type="checkbox" id="user-must-change-pw" checked style="width:14px;height:14px;accent-color:var(--primary);">
+        <label for="user-must-change-pw" style="font-size:12px;color:var(--text-muted);cursor:pointer;">첫 로그인 시 비밀번호 변경 요구</label>
+      </div>
       <button class="btn btn-ghost" onclick="closeModal('user-modal')">취소</button>
       <button class="btn btn-primary" onclick="saveUser()">저장</button>
     </div>
@@ -1939,6 +2030,30 @@ try {
 } catch(e) {
   console.warn('Firebase 미사용, 데모 모드:', e.message);
 }
+
+// ── 업체 자동로그인 (localStorage) ──
+(function tryBizAutoLogin(){
+  const savedId = localStorage.getItem('biz_auto_id');
+  const savedPw = localStorage.getItem('biz_auto_pw');
+  if(!savedId || !savedPw) return;
+  setTimeout(async function(){
+    try{
+      if(!db || !db.collection) return;
+      const doc = await db.collection('users').doc(savedId).get();
+      if(!doc.exists) return;
+      const user = doc.data();
+      if(user.pw !== savedPw || !user.coopId) return;
+      setSession({ id:user.id, name:user.name, role:user.role, permissions:user.permissions||[],
+        coopId:user.coopId, coopName:user.coopName, discountRate:user.discountRate||0,
+        isBizAccount:true, mustChangePw:user.mustChangePw||false });
+      applySession();
+      const ls = document.getElementById('login-screen');
+      if(ls){ ls.classList.add('hidden'); ls.style.display='none'; }
+      showModule('dashboard');
+      if(user.mustChangePw) setTimeout(()=>openChangePwModal(), 500);
+    }catch(e){ console.warn('자동로그인 실패:', e.message); }
+  }, 1200);
+})();
 
 // ─── 온/오프라인 상태 ────────────────────────────────────
 function setOnline(online) {
@@ -2029,6 +2144,14 @@ function switchLoginTab(tab){
   document.querySelectorAll('.login-tab').forEach((el,i)=>{
     el.classList.toggle('active', ['register','biz','admin'][i]===tab);
   });
+  // 업체 탭 전환 시 저장된 아이디 자동 채우기
+  if(tab==='biz'){
+    const savedId = localStorage.getItem('biz_auto_id');
+    const idEl = document.getElementById('biz-login-id');
+    const chk  = document.getElementById('biz-auto-login');
+    if(savedId && idEl && !idEl.value){ idEl.value=savedId; }
+    if(savedId && chk) chk.checked=true;
+  }
   // 탭 전환 시 에러 초기화
   ['reg-error1','reg-error2','biz-login-error','admin-login-error']
     .forEach(id=>{ const e=document.getElementById(id); if(e) e.textContent=''; });
@@ -2102,6 +2225,21 @@ async function regStep2Submit(){
       isBizAccount: true
     });
 
+    // 관리자 알림 저장
+    try{
+      const notifId = 'notif_' + Date.now();
+      await db.collection('notifications').doc(notifId).set({
+        id: notifId,
+        type: 'new_biz',
+        title: '신규 업체 등록',
+        desc: bizName + ' (' + ownerName + ', ' + bizPhone + ') 이(가) 등록되었습니다.',
+        bizName: bizName, ownerName: ownerName, bizPhone: bizPhone,
+        coopId: coopId, userId: uid,
+        createdAt: new Date().toISOString(),
+        read: false
+      });
+    }catch(e){ console.warn('알림 저장 실패:', e); }
+
     // 완료 화면
     document.getElementById('reg-step2').classList.remove('active');
     document.getElementById('reg-step3').classList.add('active');
@@ -2123,6 +2261,7 @@ async function doBizLogin(){
   const id  = document.getElementById('biz-login-id').value.trim();
   const pw  = document.getElementById('biz-login-pw').value;
   const err = document.getElementById('biz-login-error');
+  const autoLogin = document.getElementById('biz-auto-login')?.checked || false;
   if(!id||!pw){ err.textContent='아이디와 비밀번호를 입력하세요.'; return; }
   showLoading('로그인 중...');
   try{
@@ -2134,6 +2273,14 @@ async function doBizLogin(){
     if(!user.coopId){ err.textContent='업체 계정이 아닙니다.'; hideLoading(); return; }
 
     await db.collection('users').doc(id).set({ lastLogin: new Date().toLocaleString('ko-KR') }, { merge: true });
+    // 자동로그인 설정 저장
+    if(autoLogin){
+      localStorage.setItem('biz_auto_id', id);
+      localStorage.setItem('biz_auto_pw', pw);
+    } else {
+      localStorage.removeItem('biz_auto_id');
+      localStorage.removeItem('biz_auto_pw');
+    }
     setSession({ id: user.id, name: user.name, role: user.role, permissions: user.permissions||[],
       coopId: user.coopId, coopName: user.coopName, discountRate: user.discountRate||0,
       isBizAccount: true, mustChangePw: user.mustChangePw || false });
@@ -2177,8 +2324,118 @@ async function doAdminLogin(){
     err.textContent='';
     showModule('dashboard');
     if(user.mustChangePw) setTimeout(()=>openChangePwModal(), 500);
+    // 관리자 로그인 후 미읽음 알림 확인
+    setTimeout(()=>checkAdminNotifs(), 800);
   }catch(e){ err.textContent='오류: '+(e.message||'다시 시도해주세요.'); }
   finally { hideLoading(); }
+}
+
+// ── 알림 시스템 ──────────────────────────────────
+async function checkAdminNotifs(){
+  const sess = getSession();
+  if(!sess || sess.role !== 'admin') return;
+  try{
+    const snap = await db.collection('notifications').where('read','==',false).get();
+    const count = snap.size;
+    const btn   = document.getElementById('notif-btn');
+    const badge = document.getElementById('notif-badge');
+    if(count > 0){
+      if(btn)   { btn.style.display='block'; }
+      if(badge) { badge.style.display='flex'; badge.textContent=count>9?'9+':String(count); }
+      // 팝업 자동 표시 (첫 로그인 시)
+      openNotifPopup();
+    } else {
+      if(btn)   btn.style.display='none';
+      if(badge) badge.style.display='none';
+    }
+  }catch(e){ console.warn('알림 조회 실패:', e); }
+}
+
+async function openNotifPopup(){
+  const sess = getSession();
+  if(!sess || sess.role !== 'admin') return;
+  try{
+    const snap = await db.collection('notifications').orderBy('createdAt','desc').limit(20).get();
+    const notifs = snap.docs.map(d=>d.data());
+    const unreadCount = notifs.filter(n=>!n.read).length;
+
+    // 기존 팝업 제거
+    const old = document.getElementById('notif-popup-overlay');
+    if(old) old.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className='notif-popup-overlay'; overlay.id='notif-popup-overlay';
+    overlay.innerHTML=`
+      <div class="notif-popup">
+        <div class="notif-popup-header">
+          <h3>🔔 업체 등록 알림 ${unreadCount>0?'<span style="background:rgba(255,255,255,.2);padding:2px 8px;border-radius:10px;font-size:12px;margin-left:8px;">'+unreadCount+'건 미읽음</span>':''}</h3>
+          <button onclick="document.getElementById('notif-popup-overlay').remove()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:0 4px;">✕</button>
+        </div>
+        <div class="notif-list" id="notif-list">
+          ${notifs.length===0
+            ? '<div style="padding:32px;text-align:center;color:#aaa;font-size:14px;">새 알림이 없습니다.</div>'
+            : notifs.map(n=>`
+              <div class="notif-item ${n.read?'':'unread'}" id="ni-${n.id}">
+                <div class="notif-item-icon">${n.type==='new_biz'?'🏪':'📢'}</div>
+                <div class="notif-item-body">
+                  <div class="notif-item-title">${n.title}</div>
+                  <div class="notif-item-desc">${n.desc}</div>
+                  <div class="notif-item-time">${formatRelTime(n.createdAt)}</div>
+                </div>
+                ${!n.read?`<button onclick="markNotifRead('${n.id}')" style="flex-shrink:0;background:#e8f5e9;border:none;color:#2e7d32;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;white-space:nowrap;">읽음</button>`:'<span style="font-size:11px;color:#ccc;flex-shrink:0;">✓</span>'}
+              </div>`).join('')
+          }
+        </div>
+        <div class="notif-popup-footer">
+          ${unreadCount>0?`<button onclick="markAllNotifsRead()" class="btn btn-ghost btn-sm">전체 읽음 처리</button>`:''}
+          <button onclick="document.getElementById('notif-popup-overlay').remove()" class="btn btn-primary btn-sm">닫기</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    // 오버레이 클릭 시 닫기
+    overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+  }catch(e){ console.warn('알림 팝업 오류:', e); }
+}
+
+async function markNotifRead(notifId){
+  try{
+    await db.collection('notifications').doc(notifId).update({ read: true });
+    const item = document.getElementById('ni-'+notifId);
+    if(item){
+      item.classList.remove('unread');
+      const btn = item.querySelector('button');
+      if(btn) btn.outerHTML='<span style="font-size:11px;color:#ccc;flex-shrink:0;">✓</span>';
+    }
+    checkAdminNotifs();
+  }catch(e){ console.warn('읽음 처리 실패:', e); }
+}
+
+async function markAllNotifsRead(){
+  try{
+    const snap = await db.collection('notifications').where('read','==',false).get();
+    const batch = db.batch ? db.batch() : null;
+    if(batch){
+      snap.docs.forEach(d=>batch.update(d.ref,{read:true}));
+      await batch.commit();
+    } else {
+      for(const d of snap.docs) await d.ref.update({read:true});
+    }
+    document.getElementById('notif-popup-overlay')?.remove();
+    checkAdminNotifs();
+  }catch(e){ console.warn('전체 읽음 실패:', e); }
+}
+
+function formatRelTime(iso){
+  if(!iso) return '';
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff/60000);
+  if(m<1)   return '방금 전';
+  if(m<60)  return m+'분 전';
+  const h = Math.floor(m/60);
+  if(h<24)  return h+'시간 전';
+  const d = Math.floor(h/24);
+  if(d<7)   return d+'일 전';
+  return new Date(iso).toLocaleDateString('ko-KR');
 }
 
 // ── 비밀번호 변경 모달 (로그인 후 변경) ──
@@ -2250,6 +2507,10 @@ async function submitChangePw(){
 }
 
 async function doLogin() {
+  // 구형 로그인 → 관리자 탭으로 리다이렉트 (하위 호환)
+  switchLoginTab('admin');
+  return;
+  // --- 아래는 레거시 코드 (사용 안 함) ---
   const id = document.getElementById('login-id').value.trim();
   const pw = document.getElementById('login-pw').value;
   if (!id || !pw) { document.getElementById('login-error').textContent = '아이디와 비밀번호를 입력하세요.'; return; }
@@ -2302,6 +2563,14 @@ async function doLogin() {
 }
 
 function doLogout() {
+  // 업체 계정이면 자동로그인 해제 여부 확인
+  const sess = getSession();
+  if(sess && sess.isBizAccount && localStorage.getItem('biz_auto_id')){
+    if(!confirm('자동로그인을 유지하시겠습니까?\n\n취소를 누르면 자동로그인이 해제됩니다.')){
+      localStorage.removeItem('biz_auto_id');
+      localStorage.removeItem('biz_auto_pw');
+    }
+  }
   clearSession();
   document.body.className = '';
   const ls = document.getElementById('login-screen');
@@ -2336,6 +2605,18 @@ async function resetDefaultAccounts() {
   } finally { hideLoading(); }
 }
 
+function hardReset() {
+  if (!confirm('⚠️ 전체 초기화\n\n로그인 세션과 로컬 캐시를 모두 지웁니다.\n데이터(Firebase)는 삭제되지 않습니다.\n\n계속하시겠습니까?')) return;
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+    alert('✅ 초기화 완료! 페이지를 다시 로드합니다.');
+  } catch(e) {
+    alert('초기화 중 오류: ' + e.message);
+  }
+  location.reload();
+}
+
 function applySession() {
   const s = getSession(); if (!s) return;
   // 가맹점 전용 관리자 — 불필요 메뉴 숨기기
@@ -2358,6 +2639,15 @@ function applySession() {
   el.textContent = labels[s.role] || s.role;
   el.className = 'role-tag role-tag-' + s.role;
   document.getElementById('sidebar-username').textContent = `${s.name} (${labels[s.role]})`;
+
+  // ── staff/admin 대시보드 섹션 전환 ─────────────────────────
+  const staffSec = document.getElementById('dash-staff-section');
+  const adminSec = document.getElementById('dash-admin-section');
+  if (staffSec && adminSec) {
+    const isStaff = s.role === 'staff';
+    staffSec.style.display = isStaff ? 'block' : 'none';
+    adminSec.style.display = isStaff ? 'none'  : 'block';
+  }
 
   // ── staff 개별 권한 적용 ──────────────────────────────────
   if (s.role === 'staff') {
@@ -2587,6 +2877,46 @@ async function renderDashboard() {
         <div style="font-weight:700;font-size:13px;">${t.program||'-'}</div>
         <div style="font-size:12px;color:var(--text-muted);">${t.startTime||''} ~ ${t.endTime||''} | ${t.people||0}명 | ${statusBadge(t.status)}</div>
       </div>`).join('');
+
+    // ── staff 전용 섹션 채우기 ──────────────────────────────
+    if (_role === 'staff') {
+      const staffToday = document.getElementById('dash-today-staff');
+      const todayDate  = document.getElementById('dash-today-date');
+      const calLabel   = document.getElementById('dash-cal-label');
+      const miniCal    = document.getElementById('dash-mini-cal');
+      if (todayDate) { const nd=new Date(); todayDate.textContent=`${nd.getFullYear()}.${nd.getMonth()+1}.${nd.getDate()}`; }
+      if (staffToday) {
+        staffToday.innerHTML = todayTasks.length===0
+          ? '<p style="color:var(--text-muted);font-size:13px;">오늘 배정된 일정이 없습니다.</p>'
+          : todayTasks.map(tk=>`<div style="padding:10px;border-radius:8px;background:#F0F9F4;margin-bottom:8px;border-left:4px solid var(--primary);">
+              <div style="font-weight:700;font-size:13px;">${tk.program||'-'}</div>
+              <div style="font-size:12px;color:var(--text-muted);">${tk.startTime||''} ~ ${tk.endTime||''} · ${tk.people||0}명 · ${statusBadge(tk.status)}</div>
+            </div>`).join('');
+      }
+      const now2=new Date();
+      if (calLabel) calLabel.textContent=`${now2.getFullYear()}년 ${now2.getMonth()+1}월`;
+      if (miniCal) {
+        const y=now2.getFullYear(), m=now2.getMonth();
+        const ym=`${y}-${String(m+1).padStart(2,'0')}`;
+        const mTasks=tasks.filter(x=>x.date&&x.date.startsWith(ym));
+        const firstDay=new Date(y,m,1).getDay();
+        const daysInMonth=new Date(y,m+1,0).getDate();
+        const days=['일','월','화','수','목','금','토'];
+        let html=days.map(d=>`<div class="cal-day-header">${d}</div>`).join('');
+        for(let i=0;i<firstDay;i++) html+=`<div class="cal-cell other-month"><div class="day-num" style="color:#ccc;"></div></div>`;
+        const todayStr=today();
+        for(let d=1;d<=daysInMonth;d++){
+          const ds=`${ym}-${String(d).padStart(2,'0')}`;
+          const dt=mTasks.filter(x=>x.date===ds);
+          const isToday=ds===todayStr;
+          html+=`<div class="cal-cell${isToday?' today':''}">
+            <div class="day-num">${d}</div>
+            ${dt.slice(0,2).map(tk=>`<div class="cal-event">${tk.program||'일정'}</div>`).join('')}
+          </div>`;
+        }
+        miniCal.innerHTML=html;
+      }
+    }
     const recent=[...customers].sort((a,b)=>b.id-a.id).slice(0,5);
     document.getElementById('dash-recent').innerHTML=recent.length===0
       ?'<p style="color:var(--text-muted);font-size:13px;">등록된 고객이 없습니다.</p>'
@@ -3167,8 +3497,11 @@ async function populateM03Selects() {
 async function openM03Add() {
   m03EditId=null;
   document.getElementById('m03-modal-title').textContent='업무 등록';
-  ['m03-date','m03-start','m03-end','m03-people','m03-amount'].forEach(id=>document.getElementById(id).value='');
-  ['m03-program','m03-status','m03-staff'].forEach(id=>document.getElementById(id).value='');
+  ['m03-date','m03-date-end','m03-start','m03-end','m03-people','m03-amount'].forEach(id=>document.getElementById(id).value='');
+  ['m03-program','m03-status'].forEach(id=>document.getElementById(id).value='');
+  resetM03StaffRows();
+  const nightsRow=document.getElementById('m03-nights-row');
+  if(nightsRow) nightsRow.style.display='none';
   const custSel=document.getElementById('m03-customer');
   if(custSel) custSel.value='';
   const paySel=document.getElementById('m03-pay-status');
@@ -3183,6 +3516,7 @@ async function openM03Edit(id) {
     m03EditId=id;
     document.getElementById('m03-modal-title').textContent='업무 수정';
     document.getElementById('m03-date').value=t.date||'';
+    document.getElementById('m03-date-end').value=t.dateEnd||'';
     document.getElementById('m03-start').value=t.startTime||'';
     document.getElementById('m03-end').value=t.endTime||'';
     document.getElementById('m03-people').value=t.people||'';
@@ -3190,7 +3524,15 @@ async function openM03Edit(id) {
     await populateM03Selects();
     document.getElementById('m03-program').value=t.program||'';
     document.getElementById('m03-status').value=t.status||'';
-    document.getElementById('m03-staff').value=t.staff||'';
+    // 다중 직원 복원
+    resetM03StaffRows();
+    if(t.staffList && t.staffList.length>0){
+      t.staffList.forEach((s,i)=>{ addM03StaffRow(s.name, s.role); });
+    } else if(t.staff){
+      addM03StaffRow(t.staff, '주강사');
+    }
+    // 숙박 기간 표시 갱신
+    if(t.dateEnd) onM03DateChange();
     const custSel=document.getElementById('m03-customer');
     if(custSel) custSel.value=t.customerId||'';
     const paySel=document.getElementById('m03-pay-status');
@@ -3200,6 +3542,75 @@ async function openM03Edit(id) {
     openModal('m03-modal');
   }finally{hideLoading();}
 }
+// ── m03 직원 배정 다중 행 ────────────────────────────
+const M03_ROLES = ['주강사','보조강사','담당자','인솔자','보조인력','기타'];
+let _m03StaffEmployees = [];
+
+function resetM03StaffRows(){
+  const container = document.getElementById('m03-staff-rows');
+  if(container) container.innerHTML='';
+  _m03StaffEmployees = [];
+  addM03StaffRow(); // 기본 1행
+}
+
+async function addM03StaffRow(defaultName='', defaultRole='주강사'){
+  const container = document.getElementById('m03-staff-rows');
+  if(!container) return;
+  // 직원 목록 로드 (캐시)
+  if(!_m03StaffEmployees.length){
+    try{ _m03StaffEmployees = await getAll('employees'); }catch(e){}
+  }
+  const rowIdx = container.children.length;
+  const row = document.createElement('div');
+  row.className='m03-staff-row';
+  row.style.cssText='display:flex;gap:6px;align-items:center;';
+  row.innerHTML=`
+    <select class="m03-staff-sel" style="flex:2;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;" onchange="onM03StaffChange()">
+      <option value="">직원 선택</option>
+      ${_m03StaffEmployees.map(e=>`<option value="${e.name}" ${e.name===defaultName?'selected':''}>${e.name}${e.position?' ('+e.position+')':''}</option>`).join('')}
+    </select>
+    <select class="m03-role-sel" style="flex:1;padding:9px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;">
+      ${M03_ROLES.map(r=>`<option value="${r}" ${r===defaultRole?'selected':''}>${r}</option>`).join('')}
+    </select>
+    <button type="button" onclick="this.parentElement.remove()" style="flex-shrink:0;background:none;border:1px solid #ffcdd2;color:#e53935;border-radius:6px;padding:6px 8px;font-size:13px;cursor:pointer;">✕</button>
+  `;
+  container.appendChild(row);
+  // 첫 번째 행 삭제 버튼 숨기기
+  if(rowIdx===0) row.querySelector('button').style.visibility='hidden';
+}
+
+function collectM03StaffRows(){
+  const rows = document.querySelectorAll('.m03-staff-row');
+  const result = [];
+  rows.forEach(row=>{
+    const name = row.querySelector('.m03-staff-sel')?.value;
+    const role = row.querySelector('.m03-role-sel')?.value||'주강사';
+    if(name) result.push({ name, role });
+  });
+  return result;
+}
+
+function onM03DateChange(){
+  const start = document.getElementById('m03-date').value;
+  const end   = document.getElementById('m03-date-end').value;
+  const nightsRow = document.getElementById('m03-nights-row');
+  const display   = document.getElementById('m03-nights-display');
+  if(!nightsRow||!display) return;
+  if(!end || !start || end <= start){
+    nightsRow.style.display='none';
+    // 종료일이 시작일보다 이전이면 초기화
+    if(end && start && end < start) document.getElementById('m03-date-end').value='';
+    return;
+  }
+  const ms = new Date(end) - new Date(start);
+  const nights = Math.round(ms / 86400000);
+  nightsRow.style.display='block';
+  display.textContent = nights + '박 ' + (nights+1) + '일 · ' + start + ' ~ ' + end;
+  // 종료일 min 설정
+  document.getElementById('m03-date-end').min = start;
+}
+
+// ── m03 업무 모달 ────────────────────────────────
 async function autoCalcAmount() {
   const prog=document.getElementById('m03-program').value;
   const people=Number(document.getElementById('m03-people').value);
@@ -3216,22 +3627,28 @@ async function saveM03() {
     const custSel = document.getElementById('m03-customer');
     const customerId = custSel ? (custSel.value ? Number(custSel.value) : null) : null;
     const customerName = custSel && custSel.value ? custSel.options[custSel.selectedIndex].text.split(' (')[0] : '';
+    // 다중 직원 배정 수집
+    const staffList = collectM03StaffRows();
+    const staffSel2 = staffList.length > 0 ? staffList[0].name : '';
+    const dateEnd = document.getElementById('m03-date-end').value || '';
     const data={program:document.getElementById('m03-program').value,date:document.getElementById('m03-date').value,
+      dateEnd: dateEnd,
       startTime:document.getElementById('m03-start').value,endTime:document.getElementById('m03-end').value,
       people:document.getElementById('m03-people').value,amount:document.getElementById('m03-amount').value,
-      status:document.getElementById('m03-status').value,staff:staffSel,
+      status:document.getElementById('m03-status').value,
+      staff: staffSel2,   // 하위 호환 (첫 번째 직원)
+      staffList: staffList, // 다중 직원 배정 목록
       approvalStatus, payStatus,
       customerId, customerName,
-      confirmStatus: staffSel ? (m03EditId ? undefined : 'pending') : 'none'};
-    // 수정 시 confirmStatus undefined 제거
+      confirmStatus: staffSel2 ? (m03EditId ? undefined : 'pending') : 'none'};
     if(data.confirmStatus===undefined) delete data.confirmStatus;
     if(m03EditId){await db.collection('tasks').doc(String(m03EditId)).update(data);}
     else{const id=await genId('tasks');await upsert('tasks',{...data,id});}
     closeModal('m03-modal');
     await renderM03();
     // 직원 배정 시 SMS 알림 팝업 자동 표시
-    if(!m03EditId && staffSel){
-      setTimeout(()=>openM03StaffSMSByName(staffSel, data.program, data.date, data.startTime), 300);
+    if(!m03EditId && staffSel2){
+      setTimeout(()=>openM03StaffSMSByName(staffSel2, data.program, data.date, data.startTime), 300);
     }
   }catch(e){alert('저장 실패: '+e.message);}finally{hideLoading();}
 }
@@ -3317,7 +3734,60 @@ function selectSchType(btn) {
   document.getElementById('sch-type').value = btn.dataset.val;
 }
 
-function openScheduleAdd() {
+// ── 일정 직원 체크박스 헬퍼 ──────────────────────────────
+async function _renderSchStaffCheckboxes(selectedIds=[]) {
+  const container = document.getElementById('sch-staff-list');
+  if (!container) return;
+  container.innerHTML = '<span style="color:#bbb;font-size:13px;">로딩 중...</span>';
+  try {
+    const snap = await db.collection('employees').get();
+    let emps = snap.docs.map(d => d.data()).filter(e => e && e.name);
+    emps.sort((a,b) => (a.name||'').localeCompare(b.name||'', 'ko'));
+    if (emps.length === 0) {
+      container.innerHTML = '<span style="color:#bbb;font-size:13px;">등록된 직원이 없습니다.</span>';
+      return;
+    }
+    const selIds = (selectedIds||[]).map(String);
+    container.innerHTML = emps.map(e => {
+      const checked = selIds.includes(String(e.id)) ? 'checked' : '';
+      const name = (e.name||'').replace(/</g,'&lt;');
+      const pos  = e.position ? ` <span style="font-size:11px;opacity:.7;">(${e.position})</span>` : '';
+      return `<label style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;border:1.5px solid #ddd;border-radius:20px;cursor:pointer;font-size:13px;transition:background .15s,border-color .15s;user-select:none;">
+        <input type="checkbox" value="${e.id}" ${checked} onchange="_updateSchStaffSelected()" style="cursor:pointer;accent-color:var(--primary);">
+        ${name}${pos}
+      </label>`;
+    }).join('');
+    _updateSchStaffSelected();
+  } catch(err) {
+    console.error('[_renderSchStaffCheckboxes]', err);
+    container.innerHTML = '<span style="color:#e53935;font-size:13px;">직원 로딩 실패</span>';
+  }
+}
+
+function _updateSchStaffSelected() {
+  const allLabels = document.querySelectorAll('#sch-staff-list label');
+  const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#2E7D5B';
+  const ids = [], names = [];
+  allLabels.forEach(lbl => {
+    const cb = lbl.querySelector('input[type=checkbox]');
+    if (!cb) return;
+    if (cb.checked) {
+      lbl.style.background   = primary;
+      lbl.style.color        = '#fff';
+      lbl.style.borderColor  = primary;
+      ids.push(cb.value);
+      names.push(lbl.textContent.trim());
+    } else {
+      lbl.style.background  = '#fff';
+      lbl.style.color       = '';
+      lbl.style.borderColor = '#ddd';
+    }
+  });
+  const hidden = document.getElementById('sch-staff-selected');
+  if (hidden) hidden.value = JSON.stringify({ ids, names });
+}
+
+async function openScheduleAdd() {
   schedEditId = null;
   document.getElementById('sch-modal-title').textContent = '일정 등록';
   document.getElementById('sch-type').value = '';
@@ -3328,6 +3798,7 @@ function openScheduleAdd() {
   document.getElementById('sch-end').value = '';
   const sess = getSession();
   document.getElementById('sch-author').value = sess ? sess.name : '';
+  await _renderSchStaffCheckboxes([]);
   openModal('schedule-modal');
 }
 
@@ -3350,6 +3821,9 @@ async function openScheduleEdit(id) {
     document.getElementById('sch-start').value = s.startTime||'';
     document.getElementById('sch-end').value = s.endTime||'';
     document.getElementById('sch-author').value = s.author||'';
+    // 직원 체크박스 복원
+    const savedIds = (s.staffIds||[]).map(String);
+    await _renderSchStaffCheckboxes(savedIds);
     openModal('schedule-modal');
   } finally { hideLoading(); }
 }
@@ -3362,13 +3836,25 @@ async function saveSchedule() {
   const sess = getSession();
   showLoading('저장 중...');
   try {
+    // 직원 선택 값 파싱
+    let staffIds = [], staffNames = [];
+    try {
+      const schStaff = document.getElementById('sch-staff-selected');
+      if (schStaff && schStaff.value) {
+        const parsed = JSON.parse(schStaff.value);
+        staffIds   = parsed.ids   || [];
+        staffNames = parsed.names || [];
+      }
+    } catch(e) {}
     const data = {
       type, date,
       content: document.getElementById('sch-content').value.trim(),
       startTime: document.getElementById('sch-start').value,
       endTime: document.getElementById('sch-end').value,
       author: sess ? sess.name : '',
-      authorId: sess ? sess.id : ''
+      authorId: sess ? sess.id : '',
+      staffIds,
+      staffNames
     };
     if(schedEditId) { await db.collection('schedules').doc(String(schedEditId)).update(data); }
     else { const id = await genId('schedules'); await upsert('schedules', {...data, id}); }
@@ -3898,8 +4384,13 @@ async function openAddUserModal(){
   resetPwMatch();
   document.getElementById('user-role-input').value='staff';
   document.getElementById('user-id-input').disabled=false;
-  await populateUserCoopSelect('');  // 가맹점 드롭다운 채우기
+  await populateUserCoopSelect('');
   onUserRoleChange();
+  // 신규: 체크박스 표시 + 기본 체크
+  const mcRow = document.getElementById('mustchangepw-row');
+  const mcChk = document.getElementById('user-must-change-pw');
+  if(mcRow) mcRow.style.display='flex';
+  if(mcChk) mcChk.checked=true;
   openModal('user-modal');
 }
 async function openEditUserModal(id){
@@ -3917,8 +4408,11 @@ async function openEditUserModal(id){
     resetPwMatch();
     document.getElementById('user-role-input').value=u.role;
     setCheckedPerms(u.permissions||[]);
-    await populateUserCoopSelect(u.coopId||'');  // 담당 가맹점 복원
+    await populateUserCoopSelect(u.coopId||'');
     onUserRoleChange();
+    // 수정 모드: 체크박스 숨기기
+    const mcRow2 = document.getElementById('mustchangepw-row');
+    if(mcRow2) mcRow2.style.display='none';
     openModal('user-modal');
   }finally{hideLoading();}
 }
@@ -3998,11 +4492,13 @@ async function saveUser(){
       if(exists){alert('이미 존재하는 아이디입니다.');return;}
       const perms = getCheckedPerms();
       const coopData = await getSelectedCoopData();
+      const mustChange = document.getElementById('user-must-change-pw')?.checked ?? true;
       await db.collection('users').doc(uid).set({
         id:uid, name, pw, role, permissions:perms, lastLogin:'',
         coopId:       coopData.coopId       || null,
         coopName:     coopData.coopName     || null,
-        discountRate: coopData.discountRate != null ? coopData.discountRate : null
+        discountRate: coopData.discountRate != null ? coopData.discountRate : null,
+        mustChangePw: mustChange
       });
     }
     closeModal('user-modal'); await renderUsers();
@@ -4025,7 +4521,7 @@ async function renderUsers(){
       viewer:'<span class="badge badge-purple">👁️ 읽기전용</span>'};
     document.getElementById('users-tbody').innerHTML=users.map(u=>`<tr>
       <td><b>${u.id}</b></td><td>${u.name}</td>
-      <td>${roleLabels[u.role]||u.role}</td>
+      <td>${roleLabels[u.role]||u.role} ${u.mustChangePw?'<span style="background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:8px;font-size:10px;margin-left:4px;">⚠ 초기PW</span>':''}</td>
       <td style="font-size:12px;">${u.coopName ? '<span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:10px;font-size:11px;">🏪 '+u.coopName+'</span>' : '<span style="color:var(--text-muted);font-size:11px;">슈퍼관리자</span>'}</td>
       <td style="font-size:12px;color:var(--text-muted);">${u.lastLogin||'없음'}</td>
       <td>
